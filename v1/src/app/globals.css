@@ -1,0 +1,116 @@
+@import "tailwindcss";
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* Dark mode (default) */
+  --foreground-rgb: 255, 255, 255;
+  --background-rgb: 15, 23, 42;
+  --sidebar-bg: 30, 41, 59;
+  --card-bg: 51, 65, 85;
+  --highlight: 250, 204, 21;
+  --text-secondary: 148, 163, 184;
+  --button-primary: 216, 180, 254; /* purple-300 */
+  --button-primary-hover: 192, 132, 252; /* purple-400 */
+  --button-secondary: 51, 65, 85; /* slate-700 */
+  --button-secondary-hover: 71, 85, 105; /* slate-600 */
+  --input-bg: 30, 41, 59; /* slate-800 */
+  --border-color: 51, 65, 85; /* slate-700 */
+}
+
+/* Light mode variables */
+html.light-mode {
+  --foreground-rgb: 15, 23, 42; /* slate-900 */
+  --background-rgb: 241, 245, 249; /* slate-100 */
+  --sidebar-bg: 226, 232, 240; /* slate-200 */
+  --card-bg: 255, 255, 255; /* white */
+  --highlight: 126, 34, 206; /* purple-700 */
+  --text-secondary: 100, 116, 139; /* slate-500 */
+  --button-primary: 192, 132, 252; /* purple-400 */
+  --button-primary-hover: 168, 85, 247; /* purple-500 */
+  --button-secondary: 255, 255, 255; /* white */
+  --button-secondary-hover: 241, 245, 249; /* slate-100 */
+  --input-bg: 255, 255, 255; /* white */
+  --border-color: 203, 213, 225; /* slate-300 */
+}
+
+body {
+  color: rgb(var(--foreground-rgb));
+  background: rgb(var(--background-rgb));
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgb(var(--card-bg));
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgb(var(--text-secondary));
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #888;
+}
+
+/* Theme transition */
+html {
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+html.dark-mode {
+  color-scheme: dark;
+}
+
+html.light-mode {
+  color-scheme: light;
+}
+
+/* Make sure all color transitions are smooth */
+* {
+  transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+}
+
+/* Button styles */
+.btn-primary {
+  background-color: rgb(var(--button-primary));
+  color: rgb(15, 23, 42); /* Always dark text on light button */
+}
+
+.btn-primary:hover {
+  background-color: rgb(var(--button-primary-hover));
+}
+
+.btn-secondary {
+  background-color: rgb(var(--button-secondary));
+  color: rgb(var(--foreground-rgb));
+  border: 1px solid rgb(var(--border-color));
+}
+
+.btn-secondary:hover {
+  background-color: rgb(var(--button-secondary-hover));
+}
+
+/* Input styles */
+.input-field {
+  background-color: rgb(var(--input-bg));
+  color: rgb(var(--foreground-rgb));
+  border: 1px solid rgb(var(--border-color));
+}
+
+.input-field:focus {
+  outline: none;
+  ring: 2px solid rgb(var(--button-primary));
+}
+
+/* Card styles */
+.card {
+  background-color: rgb(var(--card-bg));
+  border: 1px solid rgb(var(--border-color));
+}
