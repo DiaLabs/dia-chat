@@ -389,7 +389,7 @@ export default function ChatInterface({
       {/* Floating Input - pill shaped and frosty */}
       <div className="absolute bottom-4 left-4 right-4 z-20">
         <div className="max-w-4xl mx-auto">
-          <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/90 dark:bg-neutral-900/90 backdrop-blur-md border border-neutral-200/50 dark:border-neutral-700/50 shadow-md transition-all">
+          <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/90 dark:bg-neutral-900/90 backdrop-blur-md border border-neutral-200/50 dark:border-neutral-700/50 shadow-md transition-all focus-within:border-neutral-200/50 dark:focus-within:border-neutral-700/50">
             <textarea
               ref={inputRef}
               value={input}
@@ -407,7 +407,8 @@ export default function ChatInterface({
                   : 'Click download to start chatting...'
               }
               rows={1}
-              className="flex-1 px-2 py-1 bg-transparent text-neutral-900 dark:text-white placeholder-neutral-500 resize-none outline-0 ring-0 border-0"
+              style={{ outline: 'none', boxShadow: 'none' }}
+              className="flex-1 px-2 py-1 bg-transparent text-neutral-900 dark:text-white placeholder-neutral-500 resize-none !outline-none !ring-0 !border-0 focus:!outline-none focus:!ring-0 focus:!border-0 focus-visible:!outline-none focus-visible:!ring-0"
             />
             {isSending || queuedMessage ? (
               <button
