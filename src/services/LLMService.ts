@@ -1,12 +1,18 @@
-import { FilesetResolver, LlmInference } from '@mediapipe/tasks-genai';
-import { LLMConfig } from '@/config/llm';
+import { CreateMLCEngine, MLCEngineInterface, ChatCompletionMessageParam } from '@mlc-ai/web-llm';
+import { LLMConfig, DEFAULT_CONFIG } from '@/config/llm';
+
+interface ProgressInfo {
+    progress: number;
+    text: string;
+}
 
 export class LLMService {
     private static instance: LLMService;
-    private llm: LlmInference | null = null;
-    private isInitializing = false;
-    private modelBlobUrl: string | null = null;
+    private engine: MLCEngineInterface | null = null;
+    private isInitialized = false;
+    private initPromise: Promise<void> | null = null;
     private abortController: AbortController | null = null;
+    private cancelInitAbortController: AbortController | null = null;
 
     private constructor() { }
 
@@ -18,238 +24,237 @@ export class LLMService {
     }
 
     /**
-     * Cancels the current model download/initialization.
+     * Check if model is cached in browser
      */
-    cancelDownload() {
-        if (this.abortController) {
-            this.abortController.abort();
-            this.abortController = null;
-            this.isInitializing = false;
-            console.log('Download cancelled by user');
-        }
-    }
-
-    async initialize(
-        config: LLMConfig,
-        onProgress?: (progress: number) => void
-    ): Promise<void> {
-        if (this.llm) return;
-        if (this.isInitializing) {
-            // If already initializing, we might want to let it continue or restart.
-            // For now, let's assume valid state.
-            // But if we want to support forceful restart, we must check.
+    async isModelCached(): Promise<boolean> {
+        // If already initialized, it's definitely available
+        if (this.isInitialized && this.engine) {
+            return true;
         }
 
-        this.isInitializing = true;
-        this.abortController = new AbortController();
-
+        // Check if the model's cache exists in browser storage
         try {
-            // 1. Download/Load Model
-            await this.downloadModel(config.modelUrl, onProgress, this.abortController.signal);
+            // Check Cache API
+            const caches = await window.caches.keys();
+            const hasCacheAPI = caches.some(key => key.includes('webllm') || key.includes('mlc'));
 
-            if (!this.modelBlobUrl) {
-                // If cancelled, we might reach here with no blob if we handled error silently?
-                // No, abort throws.
-                throw new Error('Failed to load model file');
-            }
-
-            // 2. Initialize MediaPipe GenAI
-            const genaiFileset = await FilesetResolver.forGenAiTasks(
-                '/wasm'
+            // Check IndexedDB for model weights
+            const databases = await window.indexedDB.databases();
+            const hasIndexedDB = databases.some(db =>
+                db.name && (db.name.includes('webllm') || db.name.includes('mlc'))
             );
 
-            this.llm = await LlmInference.createFromOptions(genaiFileset, {
-                baseOptions: {
-                    modelAssetPath: this.modelBlobUrl,
-                },
-                maxTokens: config.maxTokens,
-                temperature: config.temperature,
-                topK: config.topK,
-                randomSeed: config.randomSeed,
-            });
+            const isCached = hasCacheAPI || hasIndexedDB;
+            console.log(`Model cache check: CacheAPI=${hasCacheAPI}, IndexedDB=${hasIndexedDB}, Result=${isCached}`);
 
-            // Update last accessed time
-            localStorage.setItem('llm-model-last-accessed', Date.now().toString());
-            console.log('LLM Initialized successfully');
-        } catch (error: any) {
-            if (error.name === 'AbortError') {
-                console.log('LLM initialization aborted');
-                throw error;
-            } else {
-                console.error('Failed to initialize LLM:', error);
-                throw error;
-            }
-        } finally {
-            this.isInitializing = false;
-            this.abortController = null;
+            return isCached;
+        } catch (error) {
+            console.warn('Failed to check model cache:', error);
+            return false;
         }
     }
 
     /**
-     * Downloads the model file via Cache API if available, or fetches from network.
+     * Initialize the LLM engine with the specified model
      */
-    private async downloadModel(url: string, onProgress?: (progress: number) => void, signal?: AbortSignal): Promise<void> {
-        if (this.modelBlobUrl) return;
+    async initialize(
+        config: LLMConfig = DEFAULT_CONFIG,
+        onProgress?: (progress: ProgressInfo) => void
+    ): Promise<void> {
+        // If already initialized with same model, just return
+        if (this.isInitialized && this.engine) {
+            onProgress?.({ progress: 100, text: 'Ready!' });
+            return;
+        }
 
-        const CACHE_NAME = 'llm-model-v1';
+        // If initialization is in progress, wait for it
+        if (this.initPromise) {
+            return this.initPromise;
+        }
+
+        // Ensure previous engine is cleaned up if it exists but in bad state
+        if (this.engine) {
+            console.log('Cleaning up previous engine instance...');
+            await this.unload();
+        }
+
+        this.initPromise = this.doInitialize(config, onProgress);
+        return this.initPromise;
+    }
+
+    /**
+     * Cancel ongoing model initialization/download
+     */
+    cancelInitialization(): void {
+        if (this.cancelInitAbortController) {
+            this.cancelInitAbortController.abort();
+        }
+        this.cancelInitAbortController = null;
+        this.initPromise = null;
+    }
+
+    /**
+     * Reset initialization state to allow retry after error
+     */
+    resetInitialization(): void {
+        this.initPromise = null;
+        this.cancelInitAbortController = null;
+    }
+
+    private async doInitialize(
+        config: LLMConfig,
+        onProgress?: (progress: ProgressInfo) => void
+    ): Promise<void> {
+        this.cancelInitAbortController = new AbortController();
 
         try {
-            const cache = await caches.open(CACHE_NAME);
-            const cachedResponse = await cache.match(url);
+            onProgress?.({ progress: 0, text: 'Initializing...' });
 
-            if (cachedResponse) {
-                console.log('Loading model from cache...');
-                const blob = await cachedResponse.blob();
-                this.modelBlobUrl = URL.createObjectURL(blob);
-                if (onProgress) onProgress(100);
-                return;
-            }
+            this.engine = await CreateMLCEngine(config.modelId, {
+                initProgressCallback: (report) => {
+                    // Check if cancelled
+                    if (this.cancelInitAbortController?.signal.aborted) {
+                        throw new Error('Download cancelled');
+                    }
 
-            console.log('Downloading model from network...');
-            const headers: HeadersInit = {};
-            const token = process.env.NEXT_PUBLIC_HF_TOKEN;
-            if (token) {
-                headers['Authorization'] = `Bearer ${token}`;
-            }
+                    if (onProgress) {
+                        onProgress({
+                            progress: report.progress * 100,
+                            text: report.text,
+                        });
+                    }
+                },
+            });
 
-            const response = await fetch(url, { headers, signal });
-            if (!response.body) throw new Error('ReadableStream not supported');
-
-            const contentLength = response.headers.get('Content-Length');
-            const total = contentLength ? parseInt(contentLength, 10) : 0;
-            let loaded = 0;
-
-            const reader = response.body.getReader();
-            const chunks: Uint8Array[] = [];
-
-            while (true) {
-                const { done, value } = await reader.read();
-                if (done) break;
-
-                chunks.push(value);
-                loaded += value.length;
-
-                if (total && onProgress) {
-                    onProgress((loaded / total) * 100);
-                }
-            }
-
-            const blob = new Blob(chunks as BlobPart[], { type: 'application/octet-stream' });
-
-            // Store in cache
-            try {
-                const cacheResponse = new Response(blob, {
-                    headers: { 'Content-Type': 'application/octet-stream' }
-                });
-                await cache.put(url, cacheResponse);
-                localStorage.setItem('llm-model-last-accessed', Date.now().toString());
-            } catch (cacheError) {
-                console.warn('Failed to cache model:', cacheError);
-            }
-
-            this.modelBlobUrl = URL.createObjectURL(blob);
-
-        } catch (error: any) {
-            if (error.name === 'AbortError') {
-                console.log('Fetch aborted');
-                throw error; // Re-throw to be caught by initialize
-            }
-            console.error('Model download failed:', error);
+            this.isInitialized = true;
+            this.cancelInitAbortController = null;
+            onProgress?.({ progress: 100, text: 'Ready!' });
+        } catch (error) {
+            this.initPromise = null;
+            this.cancelInitAbortController = null;
+            console.error('Failed to initialize LLM:', error);
             throw error;
         }
     }
 
     /**
-     * Checks if the model is cached and valid based on expiration duration.
-     * @param durationDays Number of days the cache is valid for.
+     * Generate a response with streaming
      */
-    async checkCache(durationDays: number): Promise<boolean> {
-        const CACHE_NAME = 'llm-model-v1';
+    async generateResponse(
+        messages: ChatCompletionMessageParam[],
+        onToken?: (token: string) => void
+    ): Promise<string> {
+        if (!this.engine) {
+            throw new Error('Engine not initialized. Call initialize() first.');
+        }
+
+        this.abortController = new AbortController();
+        let fullResponse = '';
+
         try {
-            // Check metadata first
-            const lastAccessed = localStorage.getItem('llm-model-last-accessed');
-            if (lastAccessed) {
-                const lastTime = parseInt(lastAccessed, 10);
-                const maxAge = durationDays * 24 * 60 * 60 * 1000;
-                if (Date.now() - lastTime > maxAge) {
-                    console.log('Cache expired, clearing...');
-                    await this.clearCache();
-                    return false;
+
+
+            const completion = await this.engine.chat.completions.create({
+                messages,
+                stream: true,
+                temperature: DEFAULT_CONFIG.temperature,
+                top_p: DEFAULT_CONFIG.topP,
+                max_tokens: DEFAULT_CONFIG.maxTokens,
+            });
+
+
+            let tokenCount = 0;
+
+            for await (const chunk of completion) {
+                if (this.abortController?.signal.aborted) {
+                    console.log('Generation aborted by user');
+                    break;
+                }
+
+                const token = chunk.choices[0]?.delta?.content || '';
+                if (token) {
+                    tokenCount++;
+                    fullResponse += token;
+                    onToken?.(token);
                 }
             }
 
-            // Check if actual file exists in cache
-            // We need the model URL. Since checkCache is static-like or called before config, 
-            // we assume the model URL is known or passed.
-            // However, this Service is singleton. We can assume the URL from config/llm.ts or pass it.
-            // Since we don't have config here easily without importing default, let's just check if ANY request is in 'llm-model-v1'.
 
-            const cache = await caches.open(CACHE_NAME);
-            const keys = await cache.keys();
-            return keys.length > 0;
 
-        } catch (e) {
-            console.error('Error checking cache:', e);
-            return false;
-        }
-    }
-
-    async clearCache(): Promise<void> {
-        const CACHE_NAME = 'llm-model-v1';
-        await caches.delete(CACHE_NAME);
-        localStorage.removeItem('llm-model-last-accessed');
-        if (this.modelBlobUrl) {
-            URL.revokeObjectURL(this.modelBlobUrl);
-            this.modelBlobUrl = null;
-        }
-    }
-
-    /**
-     * Generates a streaming response for the given prompt.
-     */
-    generateResponse(
-        prompt: string,
-        onToken: (token: string) => void
-    ): Promise<string> {
-        if (!this.llm) throw new Error('LLM not initialized');
-
-        // Create a promise to handle the completion of the stream
-        return new Promise((resolve, reject) => {
-            try {
-                let fullText = '';
-                this.llm!.generateResponse(prompt, (partialResult, done) => {
-                    if (partialResult) {
-                        onToken(partialResult);
-                        fullText += partialResult;
-                    }
-                    if (done) {
-                        resolve(fullText);
-                    }
-                });
-            } catch (e) {
-                reject(e);
+            if (fullResponse.length === 0) {
+                console.warn('Warning: Model generated empty response');
             }
-        });
+
+            return fullResponse;
+        } catch (error) {
+            if (this.abortController?.signal.aborted) {
+                throw new Error('Generation aborted');
+            }
+            console.error('Error during generation:', error);
+            throw error;
+        } finally {
+            this.abortController = null;
+        }
     }
 
     /**
-     * Checks if the LLM is ready.
+     * Stop the current generation
+     */
+    stopGeneration(): void {
+        if (this.abortController) {
+            this.abortController.abort();
+        }
+    }
+
+    /**
+     * Check if the engine is ready
      */
     isReady(): boolean {
-        return !!this.llm;
+        return this.isInitialized && this.engine !== null;
     }
 
     /**
-     * Unloads the model and frees memory.
+     * Unload the model and free memory
      */
-    unload() {
-        if (this.llm) {
-            this.llm.close();
-            this.llm = null;
+    async unload(): Promise<void> {
+        if (this.engine) {
+            await this.engine.unload();
+            this.engine = null;
+            this.isInitialized = false;
+            this.initPromise = null;
         }
-        if (this.modelBlobUrl) {
-            URL.revokeObjectURL(this.modelBlobUrl);
-            this.modelBlobUrl = null;
+    }
+
+    /**
+     * Clear the model cache from browser storage
+     */
+    async clearCache(): Promise<void> {
+        try {
+            // First unload current engine
+            await this.unload();
+
+            // Clear Cache API (WebLLM/MLC caches)
+            const cacheNames = await window.caches.keys();
+            for (const name of cacheNames) {
+                if (name.includes('webllm') || name.includes('mlc') || name.includes('web-llm')) {
+                    await window.caches.delete(name);
+                    console.log(`Deleted cache: ${name}`);
+                }
+            }
+
+            // Clear IndexedDB databases (where model weights are stored)
+            const databases = await window.indexedDB.databases();
+            for (const db of databases) {
+                if (db.name && (db.name.includes('webllm') || db.name.includes('mlc') || db.name.includes('web-llm'))) {
+                    window.indexedDB.deleteDatabase(db.name);
+                    console.log(`Deleted IndexedDB: ${db.name}`);
+                }
+            }
+
+            console.log('Model cache cleared successfully');
+        } catch (error) {
+            console.error('Failed to clear cache:', error);
+            throw error;
         }
     }
 }

@@ -2,16 +2,18 @@
 
 import { Fragment, useState } from 'react';
 import { Dialog, Transition, TransitionChild, DialogPanel, DialogTitle, Radio, RadioGroup } from '@headlessui/react';
-import { X, Sun, Moon, Monitor, Trash2, AlertTriangle, Cpu, Check } from 'lucide-react';
+import { X, Sun, Moon, Monitor, Trash2, AlertTriangle, Cpu, Check, Loader2 } from 'lucide-react';
 import { useTheme } from '@/context/ThemeContext';
 import { useAppSettings } from '@/context/AppSettingsContext';
 import { LLMService } from '@/services/LLMService';
+import { ACTIVE_MODEL } from '@/config/llm';
 import clsx from 'clsx';
 import type { Theme, AccentColor, FontSize } from '@/types';
 
 interface SettingsProps {
   isOpen: boolean;
   onClose: () => void;
+  onRefreshChats?: () => void;
 }
 
 const themes: { value: Theme; label: string; icon: typeof Sun }[] = [
@@ -41,36 +43,52 @@ const cacheDurations: { value: number; label: string }[] = [
   { value: 90, label: '90 days' },
 ];
 
-export default function Settings({ isOpen, onClose }: SettingsProps) {
+export default function Settings({ isOpen, onClose, onRefreshChats }: SettingsProps) {
   const { theme, setTheme } = useTheme();
   const { accentColor, setAccentColor, fontSize, setFontSize, cacheDuration, setCacheDuration, clearCache, clearAllData } = useAppSettings();
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
+  const [modelCacheClearing, setModelCacheClearing] = useState(false);
+  const [modelCacheCleared, setModelCacheCleared] = useState(false);
 
-  const handleClearCache = () => {
-    clearCache();
+  const handleClearCache = async () => {
+    await clearCache();
     setShowClearConfirm(false);
+    onRefreshChats?.(); // Refresh chat list
     onClose();
   };
 
-  const handleClearAllData = () => {
-    clearAllData();
+  const handleClearAllData = async () => {
+    await clearAllData();
     setShowResetConfirm(false);
+    onRefreshChats?.(); // Refresh chat list
     onClose();
   };
 
   const handleClearModelCache = async () => {
     try {
+      setModelCacheClearing(true);
+      setModelCacheCleared(false);
+      console.log('Starting model cache deletion...');
+      
       await LLMService.getInstance().clearCache();
-      // Optional: Show toast or feedback
+      
+      setModelCacheClearing(false);
+      setModelCacheCleared(true);
+      console.log('Model cache deleted successfully!');
+      
+      // Reset success message after 3 seconds
+      setTimeout(() => setModelCacheCleared(false), 3000);
     } catch (e) {
       console.error('Failed to clear model cache:', e);
+      setModelCacheClearing(false);
+      setModelCacheCleared(false);
     }
   };
 
   return (
     <Transition show={isOpen} as={Fragment}>
-      <Dialog as="div" className="relative z-[60]" onClose={onClose}>
+      <Dialog as="div" className="relative z-60" onClose={onClose}>
         <TransitionChild
           as={Fragment}
           enter="ease-out duration-300"
@@ -102,7 +120,7 @@ export default function Settings({ isOpen, onClose }: SettingsProps) {
                   </DialogTitle>
                   <button
                     onClick={onClose}
-                    className="p-2 rounded-full hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
+                    className="p-2 rounded-full hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors cursor-pointer"
                   >
                     <X className="w-5 h-5 text-neutral-500" />
                   </button>
@@ -120,7 +138,7 @@ export default function Settings({ isOpen, onClose }: SettingsProps) {
                           key={option.value}
                           onClick={() => setTheme(option.value)}
                           className={clsx(
-                            'flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-full transition-all text-sm font-medium',
+                            'flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-full transition-all text-sm font-medium cursor-pointer',
                             theme === option.value
                               ? 'bg-white dark:bg-neutral-700 shadow-sm text-[rgb(var(--primary))]'
                               : 'text-neutral-500 hover:text-neutral-900 dark:hover:text-white'
@@ -144,7 +162,7 @@ export default function Settings({ isOpen, onClose }: SettingsProps) {
                           key={color.value}
                           onClick={() => setAccentColor(color.value)}
                           className={clsx(
-                            'relative w-10 h-10 rounded-full transition-all',
+                            'relative w-10 h-10 rounded-full transition-all cursor-pointer',
                             color.colorClass,
                             accentColor === color.value
                               ? 'ring-2 ring-offset-2 ring-offset-white dark:ring-offset-neutral-900 ring-neutral-400 scale-110'
@@ -172,7 +190,7 @@ export default function Settings({ isOpen, onClose }: SettingsProps) {
                           key={size.value}
                           onClick={() => setFontSize(size.value)}
                           className={clsx(
-                            'flex-1 px-4 py-2 rounded-full transition-all text-sm font-medium',
+                            'flex-1 px-4 py-2 rounded-full transition-all text-sm font-medium cursor-pointer',
                             fontSize === size.value
                               ? 'bg-white dark:bg-neutral-700 shadow-sm text-[rgb(var(--primary))]'
                               : 'text-neutral-500 hover:text-neutral-900 dark:hover:text-white'
@@ -195,7 +213,7 @@ export default function Settings({ isOpen, onClose }: SettingsProps) {
                           key={duration.value}
                           onClick={() => setCacheDuration(duration.value)}
                           className={clsx(
-                            'flex-1 px-3 py-2 rounded-full transition-all text-sm font-medium whitespace-nowrap',
+                            'flex-1 px-3 py-2 rounded-full transition-all text-sm font-medium whitespace-nowrap cursor-pointer',
                             cacheDuration === duration.value
                               ? 'bg-white dark:bg-neutral-700 shadow-sm text-[rgb(var(--primary))]'
                               : 'text-neutral-500 hover:text-neutral-900 dark:hover:text-white'
@@ -210,13 +228,13 @@ export default function Settings({ isOpen, onClose }: SettingsProps) {
                   {/* AI Model - Compact */}
                   <div className="pt-4 border-t border-neutral-200 dark:border-neutral-700">
                     <div className="flex items-center gap-3 p-3 rounded-2xl bg-[rgb(var(--primary))]/10 dark:bg-[rgb(var(--primary))]/10 border border-[rgb(var(--primary))]/30 dark:border-[rgb(var(--primary))]/30">
-                      <Cpu className="w-5 h-5 text-[rgb(var(--primary-hover))] dark:text-[rgb(var(--primary))] flex-shrink-0" />
+                      <Cpu className="w-5 h-5 text-[rgb(var(--primary-hover))] dark:text-[rgb(var(--primary))] shrink-0" />
                       <div className="flex-1 min-w-0">
                         <p className="text-xs font-mono text-neutral-600 dark:text-neutral-400 truncate">
-                          dia-genz-v0.1.00-1b-it-4bit
+                          {ACTIVE_MODEL.name} v{ACTIVE_MODEL.version} ({ACTIVE_MODEL.quantization})
                         </p>
                         <p className="text-xs text-neutral-500 dark:text-neutral-500">
-                          On-device AI for privacy
+                          {ACTIVE_MODEL.description}
                         </p>
                       </div>
                     </div>
@@ -232,14 +250,14 @@ export default function Settings({ isOpen, onClose }: SettingsProps) {
                       <div className="grid grid-cols-2 gap-2">
                         <button
                           onClick={() => setShowClearConfirm(true)}
-                          className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-full bg-neutral-100 dark:bg-neutral-800 hover:bg-neutral-200 dark:hover:bg-neutral-700 text-neutral-700 dark:text-neutral-300 text-sm font-medium transition-all"
+                          className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-full bg-neutral-100 dark:bg-neutral-800 hover:bg-neutral-200 dark:hover:bg-neutral-700 text-neutral-700 dark:text-neutral-300 text-sm font-medium transition-all cursor-pointer"
                         >
                           <Trash2 className="w-4 h-4" />
                           Clear Chats
                         </button>
                         <button
                           onClick={() => setShowResetConfirm(true)}
-                          className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-full bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/30 text-red-600 dark:text-red-400 text-sm font-medium transition-all"
+                          className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-full bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/30 text-red-600 dark:text-red-400 text-sm font-medium transition-all cursor-pointer"
                         >
                           <AlertTriangle className="w-4 h-4" />
                           Reset All
@@ -247,10 +265,29 @@ export default function Settings({ isOpen, onClose }: SettingsProps) {
 
                         <button
                           onClick={handleClearModelCache}
-                          className="col-span-2 flex items-center justify-center gap-2 px-4 py-2.5 rounded-full bg-neutral-100 dark:bg-neutral-800 hover:bg-neutral-200 dark:hover:bg-neutral-700 text-neutral-700 dark:text-neutral-300 text-sm font-medium transition-all"
+                          disabled={modelCacheClearing}
+                          className={`col-span-2 flex items-center justify-center gap-2 px-4 py-2.5 rounded-full text-sm font-medium transition-all cursor-pointer ${
+                            modelCacheCleared
+                              ? 'bg-green-100 dark:bg-green-900/20 text-green-700 dark:text-green-400'
+                              : 'bg-neutral-100 dark:bg-neutral-800 hover:bg-neutral-200 dark:hover:bg-neutral-700 text-neutral-700 dark:text-neutral-300'
+                          }`}
                         >
-                          <Trash2 className="w-4 h-4" />
-                          Delete Model Cache (1GB)
+                          {modelCacheClearing ? (
+                            <>
+                              <Loader2 className="w-4 h-4 animate-spin" />
+                              Clearing...
+                            </>
+                          ) : modelCacheCleared ? (
+                            <>
+                              <Check className="w-4 h-4" />
+                              Cleared!
+                            </>
+                          ) : (
+                            <>
+                              <Trash2 className="w-4 h-4" />
+                              Delete Model Cache ({ACTIVE_MODEL.size})
+                            </>
+                          )}
                         </button>
                       </div>
                     ) : showClearConfirm ? (
@@ -261,13 +298,13 @@ export default function Settings({ isOpen, onClose }: SettingsProps) {
                         <div className="flex gap-2">
                           <button
                             onClick={handleClearCache}
-                            className="flex-1 px-4 py-2 rounded-full bg-[rgb(var(--primary))] hover:bg-[rgb(var(--primary-hover))] text-neutral-900 text-sm font-semibold transition-all"
+                            className="flex-1 px-4 py-2 rounded-full bg-[rgb(var(--primary))] hover:bg-[rgb(var(--primary-hover))] text-neutral-900 text-sm font-semibold transition-all cursor-pointer"
                           >
                             Confirm
                           </button>
                           <button
                             onClick={() => setShowClearConfirm(false)}
-                            className="flex-1 px-4 py-2 rounded-full bg-neutral-200 dark:bg-neutral-700 hover:bg-neutral-300 dark:hover:bg-neutral-600 text-neutral-700 dark:text-neutral-300 text-sm font-semibold transition-all"
+                            className="flex-1 px-4 py-2 rounded-full bg-neutral-200 dark:bg-neutral-700 hover:bg-neutral-300 dark:hover:bg-neutral-600 text-neutral-700 dark:text-neutral-300 text-sm font-semibold transition-all cursor-pointer"
                           >
                             Cancel
                           </button>
@@ -281,13 +318,13 @@ export default function Settings({ isOpen, onClose }: SettingsProps) {
                         <div className="flex gap-2">
                           <button
                             onClick={handleClearAllData}
-                            className="flex-1 px-4 py-2 rounded-full bg-red-500 hover:bg-red-600 text-white text-sm font-semibold transition-all"
+                            className="flex-1 px-4 py-2 rounded-full bg-red-500 hover:bg-red-600 text-white text-sm font-semibold transition-all cursor-pointer"
                           >
                             Reset
                           </button>
                           <button
                             onClick={() => setShowResetConfirm(false)}
-                            className="flex-1 px-4 py-2 rounded-full bg-neutral-200 dark:bg-neutral-700 hover:bg-neutral-300 dark:hover:bg-neutral-600 text-neutral-700 dark:text-neutral-300 text-sm font-semibold transition-all"
+                            className="flex-1 px-4 py-2 rounded-full bg-neutral-200 dark:bg-neutral-700 hover:bg-neutral-300 dark:hover:bg-neutral-600 text-neutral-700 dark:text-neutral-300 text-sm font-semibold transition-all cursor-pointer"
                           >
                             Cancel
                           </button>

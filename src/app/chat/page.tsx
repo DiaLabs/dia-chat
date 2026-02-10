@@ -3,78 +3,72 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
+import { useChat } from '@/hooks/useChat';
 import ChatInterface from '@/components/ChatInterface';
 import Settings from '@/components/Settings';
-import { getChats, saveChat, deleteChat, createNewChat, generateChatTitle } from '@/lib/chatStorage';
-import type { Chat, Message } from '@/types';
+import type { Chat } from '@/types';
 import Logo from '@/components/Logo';
+import UserAvatar from '@/components/UserAvatar';
 import { Plus, MessageSquare, Trash2, Settings as SettingsIcon, LogOut } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import clsx from 'clsx';
 
 export default function ChatPage() {
-  const { user, logout, loading } = useAuth();
+  const { user, logout, loading: authLoading } = useAuth();
   const router = useRouter();
-  const [chats, setChats] = useState<Chat[]>([]);
-  const [activeChat, setActiveChat] = useState<Chat | null>(null);
+  const {
+    chats,
+    currentChat,
+    messages,
+    latestSummary,
+    isLoading: chatLoading,
+    createNewChat,
+    selectChat,
+    addMessage,
+    updateMessage,
+    deleteChat,
+    refreshChats,
+  } = useChat();
+
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  // Load chats from localStorage
-  useEffect(() => {
-    const storedChats = getChats();
-    setChats(storedChats);
-    if (storedChats.length > 0) {
-      setActiveChat(storedChats[0]);
-    }
-  }, []);
+  // Auto-create/select logic removed to ensure fresh 'New Chat' state on load
+  // User will see Welcome screen until they select a chat or send a message
 
   // Redirect if not logged in
   useEffect(() => {
-    if (!loading && !user) {
+    if (!authLoading && !user) {
       router.push('/');
     }
-  }, [user, loading, router]);
+  }, [user, authLoading, router]);
 
-  const handleNewChat = () => {
-    const newChat = createNewChat();
-    setChats(prev => [newChat, ...prev]);
-    setActiveChat(newChat);
-    saveChat(newChat);
+  const handleNewChat = async () => {
+    await createNewChat();
+    setSidebarOpen(false);
   };
 
-  const handleSelectChat = (chat: Chat) => {
-    setActiveChat(chat);
+  const handleSelectChat = async (chat: Chat) => {
+    await selectChat(chat.id);
+    setSidebarOpen(false);
   };
 
-  const handleDeleteChat = (chatId: string) => {
-    deleteChat(chatId);
-    setChats(prev => prev.filter(c => c.id !== chatId));
-    if (activeChat?.id === chatId) {
-      const remaining = chats.filter(c => c.id !== chatId);
-      setActiveChat(remaining[0] || null);
-    }
+  const handleDeleteChat = async (chatId: string) => {
+    await deleteChat(chatId);
   };
 
-  const handleUpdateMessages = (messages: Message[]) => {
-    if (!activeChat) return;
-    
-    const updatedChat: Chat = {
-      ...activeChat,
-      messages,
-      title: messages.length > 0 ? generateChatTitle(messages) : 'New Chat',
-      updatedAt: Date.now(),
-    };
-    
-    setActiveChat(updatedChat);
-    setChats(prev => prev.map(c => c.id === updatedChat.id ? updatedChat : c));
-    saveChat(updatedChat);
+  const handleAddMessage = async (role: 'user' | 'assistant', content: string) => {
+    return await addMessage(role, content);
   };
 
-  if (loading) {
+  const handleUpdateMessage = async (messageId: string, content: string) => {
+    await updateMessage(messageId, content);
+  };
+
+  if (authLoading || chatLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <Logo className="w-12 h-12 text-amber-500 animate-pulse" />
+        <Logo className="w-32 h-32 text-amber-500 animate-pulse" />
       </div>
     );
   }
@@ -87,8 +81,12 @@ export default function ChatPage() {
     <div className="h-screen flex overflow-hidden relative">
       {/* Grid background */}
       <div className="hero-bg" aria-hidden="true" />
-      
-      <Settings isOpen={settingsOpen} onClose={() => setSettingsOpen(false)} />
+
+      <Settings 
+        isOpen={settingsOpen} 
+        onClose={() => setSettingsOpen(false)} 
+        onRefreshChats={refreshChats}
+      />
 
       {/* Mobile Sidebar Overlay */}
       <AnimatePresence>
@@ -104,10 +102,10 @@ export default function ChatPage() {
       </AnimatePresence>
 
       {/* Permanent Sidebar */}
-      <aside 
+      <aside
         className={clsx(
-          "flex fixed inset-y-0 left-0 z-40 w-72 flex-col bg-white/50 dark:bg-neutral-900/50 backdrop-blur-xl border-r border-neutral-200/30 dark:border-neutral-800/30 transition-transform duration-300 ease-in-out md:translate-x-0 md:static",
-          sidebarOpen ? "translate-x-0" : "-translate-x-full"
+          'flex fixed inset-y-0 left-0 z-40 w-72 flex-col bg-white/50 dark:bg-neutral-900/50 backdrop-blur-xl border-r border-neutral-200/30 dark:border-neutral-800/30 transition-transform duration-300 ease-in-out md:translate-x-0 md:static',
+          sidebarOpen ? 'translate-x-0' : '-translate-x-full'
         )}
       >
         {/* Sidebar Header */}
@@ -119,7 +117,7 @@ export default function ChatPage() {
         <div className="px-4 mb-6">
           <button
             onClick={handleNewChat}
-            className="w-full flex items-center justify-center gap-2 px-6 py-3.5 rounded-full bg-gradient-to-r from-[rgb(var(--primary))] to-[rgb(var(--primary-hover))] hover:from-[rgb(var(--primary-hover))] hover:to-[rgb(var(--primary-hover))] text-neutral-900 font-semibold transition-colors"
+            className="w-full flex items-center justify-center gap-2 px-6 py-3.5 rounded-full bg-linear-to-r from-[rgb(var(--primary))] to-[rgb(var(--primary-hover))] hover:from-[rgb(var(--primary-hover))] hover:to-[rgb(var(--primary-hover))] text-neutral-900 font-semibold transition-colors"
           >
             <Plus className="w-5 h-5" />
             New Chat
@@ -156,16 +154,22 @@ export default function ChatPage() {
                       onClick={() => handleSelectChat(chat)}
                       className={clsx(
                         'w-full flex items-center gap-3 px-4 py-3 rounded-full text-left transition-all duration-200',
-                        activeChat?.id === chat.id
+                        currentChat?.id === chat.id
                           ? 'bg-[rgb(var(--primary))]/10 dark:bg-[rgb(var(--primary))]/20 text-neutral-900 dark:text-white shadow-sm ring-1 ring-[rgb(var(--primary))]/30 dark:ring-[rgb(var(--primary))]/30'
                           : 'hover:bg-neutral-100/80 dark:hover:bg-neutral-800/50 text-neutral-700 dark:text-neutral-300'
                       )}
                     >
-                      <MessageSquare className={clsx(
-                        'w-4 h-4 mt-0.5 flex-shrink-0',
-                        activeChat?.id === chat.id ? 'text-[rgb(var(--primary-hover))] dark:text-[rgb(var(--primary))]' : 'text-neutral-400'
-                      )} />
-                      <span className="text-sm font-medium line-clamp-1 flex-1 pr-6">{chat.title}</span>
+                      <MessageSquare
+                        className={clsx(
+                          'w-4 h-4 mt-0.5 shrink-0',
+                          currentChat?.id === chat.id
+                            ? 'text-[rgb(var(--primary-hover))] dark:text-[rgb(var(--primary))]'
+                            : 'text-neutral-400'
+                        )}
+                      />
+                      <span className="text-sm font-medium line-clamp-1 flex-1 pr-6">
+                        {chat.title}
+                      </span>
                     </button>
                     <button
                       onClick={(e: React.MouseEvent) => {
@@ -186,16 +190,8 @@ export default function ChatPage() {
         {/* User Profile & Actions */}
         <div className="p-4 border-t border-neutral-200/50 dark:border-neutral-800/50 space-y-3">
           {/* User Info Card */}
-          <div className="flex items-center gap-3 px-4 py-3 rounded-full bg-gradient-to-br from-neutral-50 to-neutral-100/50 dark:from-neutral-800/50 dark:to-neutral-900/50 border border-neutral-200/50 dark:border-neutral-700/50">
-            <div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0 ring-2 ring-[rgb(var(--primary))]/20">
-              {user?.photoURL ? (
-                <img src={user.photoURL} alt="" className="w-full h-full object-cover" />
-              ) : (
-                <div className="w-full h-full bg-gradient-to-br from-[rgb(var(--primary))] to-[rgb(var(--primary-hover))] flex items-center justify-center text-base font-bold text-neutral-900">
-                  {user?.displayName?.charAt(0) || 'U'}
-                </div>
-              )}
-            </div>
+          <div className="flex items-center gap-3 px-4 py-3 rounded-full bg-linear-to-br from-neutral-50 to-neutral-100/50 dark:from-neutral-800/50 dark:to-neutral-900/50 border border-neutral-200/50 dark:border-neutral-700/50">
+            <UserAvatar user={user} size="md" showRing />
             <div className="flex-1 min-w-0">
               <p className="text-sm font-semibold text-neutral-900 dark:text-white truncate">
                 {user?.displayName || 'User'}
@@ -225,12 +221,14 @@ export default function ChatPage() {
           </div>
         </div>
       </aside>
-      
+
       {/* Main chat interface */}
       <main className="flex-1 flex flex-col min-w-0 relative z-10">
         <ChatInterface
-          chat={activeChat}
-          onUpdateMessages={handleUpdateMessages}
+          messages={messages}
+          latestSummary={latestSummary?.content || null}
+          onAddMessage={handleAddMessage}
+          onUpdateMessage={handleUpdateMessage}
           onToggleSidebar={() => setSidebarOpen(true)}
         />
       </main>

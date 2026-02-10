@@ -5,6 +5,7 @@ const nextConfig: NextConfig = {
   async headers() {
     return [
       {
+        // Apply COOP/COEP headers to chat page for SharedArrayBuffer (WebLLM)
         source: '/chat/:path*',
         headers: [
           {
@@ -14,6 +15,38 @@ const nextConfig: NextConfig = {
           {
             key: 'Cross-Origin-Embedder-Policy',
             value: 'require-corp',
+          },
+          {
+            key: 'Cross-Origin-Resource-Policy',
+            value: 'cross-origin',
+          },
+        ],
+      },
+      {
+        // Also apply headers to the main chat route
+        source: '/chat',
+        headers: [
+          {
+            key: 'Cross-Origin-Opener-Policy',
+            value: 'same-origin',
+          },
+          {
+            key: 'Cross-Origin-Embedder-Policy',
+            value: 'require-corp',
+          },
+          {
+            key: 'Cross-Origin-Resource-Policy',
+            value: 'cross-origin',
+          },
+        ],
+      },
+      {
+        // Home page - minimal headers to allow Firebase auth popup
+        source: '/',
+        headers: [
+          {
+            key: 'Cross-Origin-Resource-Policy',
+            value: 'cross-origin',
           },
         ],
       },

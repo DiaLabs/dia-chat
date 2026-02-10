@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { motion } from 'framer-motion';
 import Logo from './Logo';
 import { useAuth } from '@/context/AuthContext';
@@ -9,16 +10,33 @@ import { Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/react';
 import { User, LogOut, Menu as MenuIcon, X } from 'lucide-react';
 import clsx from 'clsx';
 
-const navLinks = [
+type NavLink = {
+  name: string;
+  href: string;
+  external?: boolean;
+};
+
+const homeNavLinks: NavLink[] = [
   { name: 'What is Dia', href: '#what-is-dia' },
   { name: 'How it Works', href: '#how-it-works' },
   { name: 'Features', href: '#features' },
+];
+
+const legalNavLinks: NavLink[] = [
+  { name: 'About', href: 'https://github.com/dialabs', external: true },
+  { name: 'Privacy', href: '/privacy' },
+  { name: 'Terms', href: '/terms' },
 ];
 
 export default function Header() {
   const { user, loading, signInWithGoogle, logout } = useAuth();
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const pathname = usePathname();
+
+  // Determine which nav links to show based on current path
+  const isLegalPage = pathname === '/privacy' || pathname === '/terms';
+  const navLinks = isLegalPage ? legalNavLinks : homeNavLinks;
 
   useEffect(() => {
     const handleScroll = () => {
@@ -34,33 +52,46 @@ export default function Header() {
       animate={{ y: 0, opacity: 1 }}
       transition={{ duration: 0.6, ease: 'easeOut' }}
       className={clsx(
-        'fixed top-1 left-0 right-0 z-50 transition-all duration-300 outline-none focus:outline-none',
+        'fixed top-1 left-0 right-0 z-50 transition-all duration-300',
         scrolled ? 'py-3 px-4' : 'py-6 px-0'
       )}
     >
       <nav
         className={clsx(
-          'navbar flex items-center justify-between px-4 sm:px-6 py-3 mx-auto outline-none focus:outline-none',
-          scrolled ? 'navbar-floating' : 'navbar-top'
+          'navbar flex items-center mx-auto',
+          scrolled ? 'navbar-floating px-4 sm:px-6 py-3' : 'navbar-top px-4 sm:px-6 py-3',
+          'relative justify-center md:justify-between'
         )}
       >
         {/* Left - Nav Links (Desktop) */}
         <div className="hidden md:flex items-center gap-6 flex-1">
           {navLinks.map((link) => (
-            <a
-              key={link.name}
-              href={link.href}
-              className="text-sm font-medium text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white transition-colors"
-            >
-              {link.name}
-            </a>
+            link.external ? (
+              <a
+                key={link.name}
+                href={link.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-sm font-medium text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white transition-colors"
+              >
+                {link.name}
+              </a>
+            ) : (
+              <Link
+                key={link.name}
+                href={link.href}
+                className="text-sm font-medium text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white transition-colors"
+              >
+                {link.name}
+              </Link>
+            )
           ))}
         </div>
 
-        {/* Mobile menu button */}
+        {/* Mobile menu button - absolute positioned on left */}
         <button
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          className="md:hidden p-2 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-800"
+          className="md:hidden p-2 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-800 absolute left-6"
         >
           {mobileMenuOpen ? (
             <X className="w-5 h-5 text-neutral-700 dark:text-neutral-300" />
@@ -69,7 +100,7 @@ export default function Header() {
           )}
         </button>
 
-        {/* Center - Logo */}
+        {/* Center - Logo - Centered on mobile, static on desktop */}
         <Link 
           href="/" 
           className="flex items-center gap-2"
@@ -84,8 +115,8 @@ export default function Header() {
           </span>
         </Link>
 
-        {/* Right - Auth */}
-        <div className="flex items-center gap-3 justify-end flex-1">
+        {/* Right - Auth - absolute positioned on right for mobile */}
+        <div className="flex items-center gap-3 md:justify-end md:flex-1 absolute right-5 md:static">
           {loading ? (
             <div className="w-8 h-8 rounded-full bg-neutral-200 dark:bg-neutral-700 animate-pulse" />
           ) : user ? (
@@ -152,14 +183,27 @@ export default function Header() {
         >
           <div className="flex flex-col gap-2">
             {navLinks.map((link) => (
-              <a
-                key={link.name}
-                href={link.href}
-                onClick={() => setMobileMenuOpen(false)}
-                className="px-4 py-2 rounded-lg text-sm font-medium text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800"
-              >
-                {link.name}
-              </a>
+              link.external ? (
+                <a
+                  key={link.name}
+                  href={link.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="px-4 py-2 rounded-lg text-sm font-medium text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800"
+                >
+                  {link.name}
+                </a>
+              ) : (
+                <Link
+                  key={link.name}
+                  href={link.href}
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="px-4 py-2 rounded-lg text-sm font-medium text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800"
+                >
+                  {link.name}
+                </Link>
+              )
             ))}
           </div>
         </motion.div>

@@ -16,14 +16,22 @@ export default function Footer() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
           <p className="text-sm text-neutral-500 dark:text-neutral-400">
-            © {new Date().getFullYear()} Dia Chat. All rights reserved.
+            © {new Date().getFullYear()} DiaLabs — Made with ❤️ and care
           </p>
 
           <div className="flex items-center gap-6 text-sm text-neutral-500 dark:text-neutral-400">
-            <a href="#" className="hover:text-neutral-900 dark:hover:text-white transition-colors">
+            <a 
+              href="https://github.com/dialabs" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="hover:text-neutral-900 dark:hover:text-white transition-colors cursor-pointer"
+            >
+              About
+            </a>
+            <a href="/privacy" className="hover:text-neutral-900 dark:hover:text-white transition-colors cursor-pointer">
               Privacy
             </a>
-            <a href="#" className="hover:text-neutral-900 dark:hover:text-white transition-colors">
+            <a href="/terms" className="hover:text-neutral-900 dark:hover:text-white transition-colors cursor-pointer">
               Terms
             </a>
           </div>
@@ -33,7 +41,7 @@ export default function Footer() {
               <button
                 onClick={() => setTheme('light')}
                 className={clsx(
-                  'p-2 rounded-full transition-colors',
+                  'p-2 rounded-full transition-colors cursor-pointer',
                   theme === 'light'
                     ? 'bg-white dark:bg-neutral-700 shadow-sm text-amber-500'
                     : 'text-neutral-500 hover:text-neutral-900 dark:hover:text-white'
@@ -45,7 +53,7 @@ export default function Footer() {
               <button
                 onClick={() => setTheme('system')}
                 className={clsx(
-                  'p-2 rounded-full transition-colors',
+                  'p-2 rounded-full transition-colors cursor-pointer',
                   theme === 'system'
                     ? 'bg-white dark:bg-neutral-700 shadow-sm text-amber-500'
                     : 'text-neutral-500 hover:text-neutral-900 dark:hover:text-white'
@@ -57,7 +65,7 @@ export default function Footer() {
               <button
                 onClick={() => setTheme('dark')}
                 className={clsx(
-                  'p-2 rounded-full transition-colors',
+                  'p-2 rounded-full transition-colors cursor-pointer',
                   theme === 'dark'
                     ? 'bg-white dark:bg-neutral-700 shadow-sm text-amber-500'
                     : 'text-neutral-500 hover:text-neutral-900 dark:hover:text-white'

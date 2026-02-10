@@ -22,6 +22,17 @@ if (isFirebaseConfigured) {
         app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
         auth = getAuth(app);
         googleProvider = new GoogleAuthProvider();
+        
+        // Configure Google provider for better popup handling
+        googleProvider.setCustomParameters({
+            prompt: 'select_account',
+            // Use popup mode explicitly
+            display: 'popup'
+        });
+        
+        // Add additional scopes if needed
+        googleProvider.addScope('profile');
+        googleProvider.addScope('email');
     } catch (error) {
         console.error('Error initializing Firebase:', error);
     }

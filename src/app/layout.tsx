@@ -13,6 +13,19 @@ export const metadata: Metadata = {
   description: "A safe space for reflection and support. Dia is designed to listen, understand, and engage with you in meaningful conversations.",
   keywords: ["AI chatbot", "mental health", "wellness", "Gen Z", "companion", "emotional support"],
   authors: [{ name: "Dia Chat" }],
+  manifest: '/manifest.webmanifest',
+  themeColor: '#fbbf24',
+  viewport: {
+    width: 'device-width',
+    initialScale: 1,
+    maximumScale: 1,
+    userScalable: false,
+  },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'default',
+    title: 'Dia Chat',
+  },
   openGraph: {
     title: "Dia Chat",
     description: "Your empathetic AI companion for mental wellness",

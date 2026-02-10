@@ -2,17 +2,27 @@
 
 import { ReactNode } from 'react';
 import { ThemeProvider } from '@/context/ThemeContext';
-import { AuthProvider } from '@/context/AuthContext';
+import { AuthProvider, useAuth } from '@/context/AuthContext';
 import { AppSettingsProvider } from '@/context/AppSettingsContext';
+
+function SettingsWrapper({ children }: { children: ReactNode }) {
+  const { user } = useAuth();
+  
+  return (
+    <AppSettingsProvider user={user}>
+      {children}
+    </AppSettingsProvider>
+  );
+}
 
 export function Providers({ children }: { children: ReactNode }) {
   return (
     <ThemeProvider>
-      <AppSettingsProvider>
-        <AuthProvider>
+      <AuthProvider>
+        <SettingsWrapper>
           {children}
-        </AuthProvider>
-      </AppSettingsProvider>
+        </SettingsWrapper>
+      </AuthProvider>
     </ThemeProvider>
   );
 }

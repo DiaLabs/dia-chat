@@ -6,6 +6,7 @@ import { X, Plus, MessageSquare, Trash2, Settings as SettingsIcon, LogOut } from
 import { motion, AnimatePresence } from 'framer-motion';
 import Logo from './Logo';
 import Settings from './Settings';
+import UserAvatar from './UserAvatar';
 import { useAuth } from '@/context/AuthContext';
 import type { Chat } from '@/types';
 import clsx from 'clsx';
@@ -56,7 +57,7 @@ export default function Sidebar({
             e.stopPropagation();
             onToggle();
           }}
-          className="p-2 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
+          className="p-2 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors cursor-pointer"
         >
           <X className="w-5 h-5 text-neutral-500" />
         </button>
@@ -68,7 +69,7 @@ export default function Sidebar({
           onClick={onNewChat}
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
-          className="w-full flex items-center gap-2 px-4 py-3 rounded-xl bg-amber-400 hover:bg-amber-500 text-neutral-900 font-medium transition-colors shadow-sm"
+          className="w-full flex items-center gap-2 px-4 py-3 rounded-xl bg-amber-400 hover:bg-amber-500 text-neutral-900 font-medium transition-colors shadow-sm cursor-pointer"
         >
           <Plus className="w-5 h-5" />
           New Chat
@@ -92,8 +93,8 @@ export default function Sidebar({
                   key={chat.id}
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -20 }}
-                  transition={{ delay: index * 0.05 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
+                  transition={{ delay: index * 0.05, duration: 0.2 }}
                   className={clsx(
                     'group flex items-center gap-2 px-3 py-2.5 rounded-lg cursor-pointer transition-colors',
                     activeChat?.id === chat.id
@@ -102,7 +103,7 @@ export default function Sidebar({
                   )}
                   onClick={() => onSelectChat(chat)}
                 >
-                  <MessageSquare className="w-4 h-4 flex-shrink-0" />
+                  <MessageSquare className="w-4 h-4 shrink-0" />
                   <span className="flex-1 truncate text-sm">{chat.title}</span>
                   <motion.button
                     whileHover={{ scale: 1.1 }}
@@ -111,7 +112,7 @@ export default function Sidebar({
                       e.stopPropagation();
                       onDeleteChat(chat.id);
                     }}
-                    className="opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-neutral-200 dark:hover:bg-neutral-700 transition-opacity"
+                    className="opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-neutral-200 dark:hover:bg-neutral-700 transition-opacity cursor-pointer"
                   >
                     <Trash2 className="w-3.5 h-3.5 text-neutral-400 hover:text-red-500" />
                   </motion.button>
@@ -125,17 +126,7 @@ export default function Sidebar({
       {/* User Section */}
       <div className="p-3 border-t border-neutral-200 dark:border-neutral-800">
         <div className="flex items-center gap-3 px-3 py-2">
-          {user?.photoURL ? (
-            <img
-              src={user.photoURL}
-              alt={user.displayName || 'User'}
-              className="w-8 h-8 rounded-full"
-            />
-          ) : (
-            <div className="w-8 h-8 rounded-full bg-amber-500 flex items-center justify-center text-white text-sm font-medium">
-              {user?.displayName?.charAt(0) || 'U'}
-            </div>
-          )}
+          <UserAvatar user={user} size="sm" />
           <div className="flex-1 min-w-0">
             <p className="text-sm font-medium text-neutral-900 dark:text-white truncate">
               {user?.displayName || 'User'}

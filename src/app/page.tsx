@@ -38,18 +38,17 @@ export default function Home() {
   const router = useRouter();
 
   useEffect(() => {
-    // Force a hard reload to /chat to ensure strict COOP/COEP headers are applied
-    // This is necessary because the home page runs without strict headers (for Auth Popup),
-    // but /chat requires them for MediaPipe/SharedArrayBuffer.
+    // Redirect to chat page when user is authenticated
+    // Use router.push instead of window.location.href to avoid hard reload
     if (user && !loading) {
-      window.location.href = '/chat';
+      router.push('/chat');
     }
-  }, [user, loading]);
+  }, [user, loading, router]);
 
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <Logo className="w-12 h-12 text-amber-500 animate-pulse" />
+        <Logo className="w-32 h-32 text-amber-500 animate-pulse" />
       </div>
     );
   }
@@ -90,7 +89,7 @@ export default function Home() {
               transition={{ duration: 0.6, delay: 0.1 }}
               className="text-4xl sm:text-5xl lg:text-6xl font-bold text-neutral-900 dark:text-white mb-6"
             >
-              Meet <span className="text-amber-500">Dia</span>
+              Meet <span className="text-amber-500">Dia!</span>
             </motion.h1>
 
             <motion.p 
@@ -369,7 +368,7 @@ export default function Home() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
           >
-            <div className="p-8 sm:p-12 rounded-3xl bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 border border-amber-200 dark:border-amber-800">
+            <div className="p-8 sm:p-12 rounded-3xl bg-linear-to-br from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 border border-amber-200 dark:border-amber-800">
               <h2 className="text-2xl sm:text-3xl font-bold text-neutral-900 dark:text-white mb-4">
                 Ready to chat with Dia?
               </h2>

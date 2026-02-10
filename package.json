@@ -9,11 +9,14 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@google/generative-ai": "^0.11.0",
     "@headlessui/react": "^2.2.9",
     "@mediapipe/tasks-genai": "^0.10.26",
+    "@mlc-ai/web-llm": "^0.2.80",
     "clsx": "^2.1.1",
     "firebase": "^12.9.0",
     "framer-motion": "^12.33.0",
+    "idb": "^8.0.3",
     "lucide-react": "^0.563.0",
     "next": "16.1.6",
     "react": "19.2.3",

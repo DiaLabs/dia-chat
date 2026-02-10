@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import type { AccentColor, FontSize } from '@/types';
+import type { AuthUser } from '@/types';
 
 interface AppSettingsContextType {
   accentColor: AccentColor;
@@ -12,6 +13,11 @@ interface AppSettingsContextType {
   setCacheDuration: (days: number) => void;
   clearCache: () => void;
   clearAllData: () => void;
+}
+
+interface AppSettingsProviderProps {
+  children: ReactNode;
+  user?: AuthUser | null;
 }
 
 const AppSettingsContext = createContext<AppSettingsContextType | undefined>(undefined);
@@ -32,24 +38,31 @@ const ACCENT_HOVER_COLORS: Record<AccentColor, string> = {
   orange: '234 88 12',  // orange-600
 };
 
-export function AppSettingsProvider({ children }: { children: ReactNode }) {
+export function AppSettingsProvider({ children, user }: AppSettingsProviderProps) {
   const [accentColor, setAccentColorState] = useState<AccentColor>('yellow');
   const [fontSize, setFontSizeState] = useState<FontSize>('medium');
   const [cacheDuration, setCacheDurationState] = useState<number>(7); // 7 days default
   const [mounted, setMounted] = useState(false);
 
-  // Load settings from localStorage
+  // Load settings from localStorage only if user is logged in
   useEffect(() => {
-    const savedAccent = localStorage.getItem('dia-accent-color') as AccentColor | null;
-    const savedFontSize = localStorage.getItem('dia-font-size') as FontSize | null;
-    const savedCacheDuration = localStorage.getItem('dia-cache-duration');
+    if (user) {
+      const savedAccent = localStorage.getItem('dia-accent-color') as AccentColor | null;
+      const savedFontSize = localStorage.getItem('dia-font-size') as FontSize | null;
+      const savedCacheDuration = localStorage.getItem('dia-cache-duration');
 
-    if (savedAccent) setAccentColorState(savedAccent);
-    if (savedFontSize) setFontSizeState(savedFontSize);
-    if (savedCacheDuration) setCacheDurationState(parseInt(savedCacheDuration));
+      if (savedAccent) setAccentColorState(savedAccent);
+      if (savedFontSize) setFontSizeState(savedFontSize);
+      if (savedCacheDuration) setCacheDurationState(parseInt(savedCacheDuration));
+    } else {
+      // Reset to defaults when no user is logged in
+      setAccentColorState('yellow');
+      setFontSizeState('medium');
+      setCacheDurationState(7);
+    }
 
     setMounted(true);
-  }, []);
+  }, [user]);
 
   // Apply accent color to CSS variables
   useEffect(() => {
@@ -84,29 +97,53 @@ export function AppSettingsProvider({ children }: { children: ReactNode }) {
     localStorage.setItem('dia-cache-duration', days.toString());
   };
 
-  const clearCache = () => {
-    // Clear old chats based on cache duration
-    const chatsData = localStorage.getItem('dia-chats');
-    if (!chatsData) return;
-
+  const clearCache = async () => {
+    // Clear old chats based on cache duration from IndexedDB
     try {
-      const chats = JSON.parse(chatsData);
+      const { IndexedDBService } = await import('@/services/IndexedDBService');
+      const db = IndexedDBService.getInstance();
+      await db.init(); // Initialize DB first
+      
       const now = Date.now();
       const maxAge = cacheDuration * 24 * 60 * 60 * 1000; // Convert days to ms
       
-      const filteredChats = chats.filter((chat: any) => {
-        return (now - chat.updatedAt) < maxAge;
-      });
-
-      localStorage.setItem('dia-chats', JSON.stringify(filteredChats));
+      // Get all chats
+      const chats = await db.getAllChats();
+      
+      // Delete old chats
+      let deletedCount = 0;
+      for (const chat of chats) {
+        if ((now - chat.lastVisitedAt) > maxAge) {
+          await db.deleteChat(chat.id);
+          deletedCount++;
+        }
+      }
+      
+      console.log(`Cleared ${deletedCount} old chats (older than ${cacheDuration} days)`);
     } catch (e) {
       console.error('Error clearing cache:', e);
     }
   };
 
-  const clearAllData = () => {
-    // Clear all app data except settings
-    localStorage.removeItem('dia-chats');
+  const clearAllData = async () => {
+    // Clear all app data from IndexedDB
+    try {
+      const { IndexedDBService } = await import('@/services/IndexedDBService');
+      const db = IndexedDBService.getInstance();
+      await db.init(); // Initialize DB first
+      
+      // Get all chats and delete them
+      const chats = await db.getAllChats();
+      for (const chat of chats) {
+        await db.deleteChat(chat.id);
+      }
+      
+      console.log('Cleared all chats from IndexedDB');
+    } catch (e) {
+      console.error('Error clearing all data:', e);
+    }
+    
+    // Clear localStorage theme
     localStorage.removeItem('dia-theme');
     
     // Reset settings to defaults

@@ -130,9 +130,9 @@ section[id] {
 
 .navbar-top {
   background: transparent;
-  max-width: 1280px;
-  padding-left: 4rem;
-  padding-right: 4rem;
+  max-width: 1200px;
+  padding-left: 3rem;
+  padding-right: 3rem;
 }
 
 @media (max-width: 768px) {
@@ -146,14 +146,22 @@ section[id] {
   max-width: 900px;
   margin-left: auto;
   margin-right: auto;
+  padding-left: 1.5rem;
+  padding-right: 1rem;
   border-radius: 9999px;
-  border: 1px solid rgb(var(--border));
   backdrop-filter: blur(16px);
   background: rgb(var(--surface) / 0.9);
   box-shadow:
     0 4px 6px -1px rgb(0 0 0 / 0.1),
     0 2px 4px -2px rgb(0 0 0 / 0.1),
     0 0 0 1px rgb(0 0 0 / 0.05);
+}
+
+@media (max-width: 768px) {
+  .navbar-floating {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
 }
 
 .dark .navbar-floating {
