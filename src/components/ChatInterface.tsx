@@ -38,6 +38,7 @@ export default function ChatInterface({
     cancelDownload,
     sendMessage: sendToLLM,
     stopGeneration,
+    activeEngine,
   } = useLLM();
 
   const [input, setInput] = useState('');
@@ -237,6 +238,7 @@ export default function ChatInterface({
                 progressText={progressText}
                 onDownload={initializeModel}
                 onCancel={cancelDownload}
+                activeEngine={activeEngine}
               />
             </div>
 
@@ -251,6 +253,7 @@ export default function ChatInterface({
                 progressText={progressText}
                 onDownload={initializeModel}
                 onCancel={cancelDownload}
+                activeEngine={activeEngine}
               />
             </div>
           </div>
@@ -258,7 +261,7 @@ export default function ChatInterface({
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto px-4 pt-24 pb-32">
+      <div className="flex-1 overflow-y-auto px-4 pt-24">
         {messages.length === 0 ? (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -387,7 +390,7 @@ export default function ChatInterface({
       </div>
 
       {/* Floating Input - pill shaped and frosty */}
-      <div className="absolute bottom-4 left-4 right-4 z-20">
+      <div className="p-4 z-20 shrink-0">
         <div className="max-w-4xl mx-auto">
           <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/90 dark:bg-neutral-900/90 backdrop-blur-md border border-neutral-200/50 dark:border-neutral-700/50 shadow-md transition-all focus-within:border-neutral-200/50 dark:focus-within:border-neutral-700/50">
             <textarea

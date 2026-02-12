@@ -11,6 +11,7 @@ interface UseLLMResult {
     progressText: string;
     error: string | null;
     isCached: boolean;
+    activeEngine: 'webllm' | 'transformers' | null;
     initialize: () => Promise<void>;
     cancelDownload: () => void;
     sendMessage: (
@@ -30,6 +31,7 @@ export function useLLM(): UseLLMResult {
     const [progressText, setProgressText] = useState('');
     const [error, setError] = useState<string | null>(null);
     const [isCached, setIsCached] = useState(false);
+    const [activeEngine, setActiveEngine] = useState<'webllm' | 'transformers' | null>(null);
 
     // Check if model is cached on mount and auto-initialize if cached
     useEffect(() => {
@@ -119,6 +121,7 @@ export function useLLM(): UseLLMResult {
 
             setIsReady(true);
             setIsCached(true);
+            setActiveEngine(service.current.getActiveEngine());
             setProgress(100);
             setProgressText('Ready!');
         } catch (err: unknown) {
@@ -235,5 +238,6 @@ export function useLLM(): UseLLMResult {
         sendMessage,
         stopGeneration,
         unload,
+        activeEngine,
     };
 }

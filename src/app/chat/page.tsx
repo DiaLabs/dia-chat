@@ -78,7 +78,7 @@ export default function ChatPage() {
   }
 
   return (
-    <div className="h-screen flex overflow-hidden relative">
+    <div className="h-full flex overflow-hidden relative">
       {/* Grid background */}
       <div className="hero-bg" aria-hidden="true" />
 

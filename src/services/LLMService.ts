@@ -1,18 +1,17 @@
 import { CreateMLCEngine, MLCEngineInterface, ChatCompletionMessageParam } from '@mlc-ai/web-llm';
 import { LLMConfig, DEFAULT_CONFIG } from '@/config/llm';
-
-interface ProgressInfo {
-    progress: number;
-    text: string;
-}
+import { LLMEngine, Message, ProgressInfo } from './engines/LLMEngine';
+import { WebLLMEngine } from './engines/WebLLMEngine';
+import { TransformersEngine } from './engines/TransformersEngine';
 
 export class LLMService {
     private static instance: LLMService;
-    private engine: MLCEngineInterface | null = null;
+    private engine: LLMEngine | null = null;
     private isInitialized = false;
     private initPromise: Promise<void> | null = null;
-    private abortController: AbortController | null = null;
-    private cancelInitAbortController: AbortController | null = null;
+
+    // Track which engine type is currently active
+    private activeEngineType: 'webllm' | 'transformers' | null = null;
 
     private constructor() { }
 
@@ -25,6 +24,7 @@ export class LLMService {
 
     /**
      * Check if model is cached in browser
+     * Note: This check logic might need updates for Transformers.js cache
      */
     async isModelCached(): Promise<boolean> {
         // If already initialized, it's definitely available
@@ -33,6 +33,8 @@ export class LLMService {
         }
 
         // Check if the model's cache exists in browser storage
+        // This primarily checks WebLLM cache for now
+        // TODO: Add Transformers check
         try {
             // Check Cache API
             const caches = await window.caches.keys();
@@ -55,13 +57,46 @@ export class LLMService {
     }
 
     /**
+     * Detect best available backend
+     */
+    private async detectBestBackend(): Promise<'webllm' | 'transformers'> {
+        // Check for preferred engine in config if we store it there dynamically
+        // But mainly check hardware
+
+        // Debug: Allow forcing CPU via URL param (useful for testing fallback)
+        if (typeof window !== 'undefined') {
+            const params = new URLSearchParams(window.location.search);
+            if (params.get('cpu') === 'true' || params.get('forceCPU') === 'true') {
+                console.log('CPU mode forced via URL parameter.');
+                return 'transformers';
+            }
+        }
+
+        try {
+            if (navigator.gpu) {
+                const adapter = await navigator.gpu.requestAdapter();
+                if (adapter) {
+                    console.log('WebGPU is available. Using WebLLM engine.');
+                    return 'webllm';
+                }
+            }
+        } catch (e) {
+            console.warn('WebGPU check failed:', e);
+        }
+
+        console.log('WebGPU not available. Falling back to Transformers.js (CPU).');
+        return 'transformers';
+    }
+
+    /**
      * Initialize the LLM engine with the specified model
      */
     async initialize(
         config: LLMConfig = DEFAULT_CONFIG,
         onProgress?: (progress: ProgressInfo) => void
     ): Promise<void> {
-        // If already initialized with same model, just return
+        // If already initialized with same engine type, just return
+        // Note: Logic simplified; if config changes ideally we re-init
         if (this.isInitialized && this.engine) {
             onProgress?.({ progress: 100, text: 'Ready!' });
             return;
@@ -86,10 +121,9 @@ export class LLMService {
      * Cancel ongoing model initialization/download
      */
     cancelInitialization(): void {
-        if (this.cancelInitAbortController) {
-            this.cancelInitAbortController.abort();
-        }
-        this.cancelInitAbortController = null;
+        this.engine?.stop(); // Or specific cancel if added to interface
+        // Currently interface only has stop() and unload()
+        // We might need to reject the promise manually or let the engine handle cancellation state
         this.initPromise = null;
     }
 
@@ -98,40 +132,31 @@ export class LLMService {
      */
     resetInitialization(): void {
         this.initPromise = null;
-        this.cancelInitAbortController = null;
     }
 
     private async doInitialize(
         config: LLMConfig,
         onProgress?: (progress: ProgressInfo) => void
     ): Promise<void> {
-        this.cancelInitAbortController = new AbortController();
-
         try {
-            onProgress?.({ progress: 0, text: 'Initializing...' });
+            // Detect Engine
+            const engineType = config.engine || await this.detectBestBackend();
+            this.activeEngineType = engineType;
 
-            this.engine = await CreateMLCEngine(config.modelId, {
-                initProgressCallback: (report) => {
-                    // Check if cancelled
-                    if (this.cancelInitAbortController?.signal.aborted) {
-                        throw new Error('Download cancelled');
-                    }
+            if (engineType === 'webllm') {
+                this.engine = new WebLLMEngine();
+            } else {
+                this.engine = new TransformersEngine();
+            }
 
-                    if (onProgress) {
-                        onProgress({
-                            progress: report.progress * 100,
-                            text: report.text,
-                        });
-                    }
-                },
-            });
+            console.log(`Initializing ${engineType} engine...`);
+
+            await this.engine.initialize(config, onProgress);
 
             this.isInitialized = true;
-            this.cancelInitAbortController = null;
-            onProgress?.({ progress: 100, text: 'Ready!' });
         } catch (error) {
             this.initPromise = null;
-            this.cancelInitAbortController = null;
+            this.engine = null;
             console.error('Failed to initialize LLM:', error);
             throw error;
         }
@@ -141,59 +166,27 @@ export class LLMService {
      * Generate a response with streaming
      */
     async generateResponse(
-        messages: ChatCompletionMessageParam[],
+        messages: ChatCompletionMessageParam[], // Kept compat with UI type, logic will map if needed
         onToken?: (token: string) => void
     ): Promise<string> {
-        if (!this.engine) {
+        if (!this.engine || !this.isInitialized) {
             throw new Error('Engine not initialized. Call initialize() first.');
         }
 
-        this.abortController = new AbortController();
-        let fullResponse = '';
-
         try {
+            // Map ChatCompletionMessageParam to strictly typed Message if needed
+            // (They are compatible enough for 'role' and 'content')
+            const engineMessages = messages.map(m => ({
+                role: m.role as 'system' | 'user' | 'assistant',
+                content: typeof m.content === 'string' ? m.content : '' // Handle array content if ever present
+            }));
 
-
-            const completion = await this.engine.chat.completions.create({
-                messages,
-                stream: true,
-                temperature: DEFAULT_CONFIG.temperature,
-                top_p: DEFAULT_CONFIG.topP,
-                max_tokens: DEFAULT_CONFIG.maxTokens,
+            return await this.engine.generateResponse(engineMessages, (token) => {
+                onToken?.(token);
             });
-
-
-            let tokenCount = 0;
-
-            for await (const chunk of completion) {
-                if (this.abortController?.signal.aborted) {
-                    console.log('Generation aborted by user');
-                    break;
-                }
-
-                const token = chunk.choices[0]?.delta?.content || '';
-                if (token) {
-                    tokenCount++;
-                    fullResponse += token;
-                    onToken?.(token);
-                }
-            }
-
-
-
-            if (fullResponse.length === 0) {
-                console.warn('Warning: Model generated empty response');
-            }
-
-            return fullResponse;
         } catch (error) {
-            if (this.abortController?.signal.aborted) {
-                throw new Error('Generation aborted');
-            }
             console.error('Error during generation:', error);
             throw error;
-        } finally {
-            this.abortController = null;
         }
     }
 
@@ -201,16 +194,14 @@ export class LLMService {
      * Stop the current generation
      */
     stopGeneration(): void {
-        if (this.abortController) {
-            this.abortController.abort();
-        }
+        this.engine?.stop();
     }
 
     /**
      * Check if the engine is ready
      */
     isReady(): boolean {
-        return this.isInitialized && this.engine !== null;
+        return this.isInitialized && this.engine !== null && this.engine.isReady();
     }
 
     /**
@@ -220,9 +211,16 @@ export class LLMService {
         if (this.engine) {
             await this.engine.unload();
             this.engine = null;
-            this.isInitialized = false;
-            this.initPromise = null;
         }
+        this.isInitialized = false;
+        this.initPromise = null;
+    }
+
+    /**
+     * Get the currently active engine type
+     */
+    getActiveEngine(): 'webllm' | 'transformers' | null {
+        return this.activeEngineType;
     }
 
     /**
@@ -230,22 +228,21 @@ export class LLMService {
      */
     async clearCache(): Promise<void> {
         try {
-            // First unload current engine
             await this.unload();
 
-            // Clear Cache API (WebLLM/MLC caches)
+            // Clear WebLLM Cache
             const cacheNames = await window.caches.keys();
             for (const name of cacheNames) {
-                if (name.includes('webllm') || name.includes('mlc') || name.includes('web-llm')) {
+                if (name.includes('webllm') || name.includes('mlc') || name.includes('transformers')) {
                     await window.caches.delete(name);
                     console.log(`Deleted cache: ${name}`);
                 }
             }
 
-            // Clear IndexedDB databases (where model weights are stored)
+            // Clear IndexedDB databases
             const databases = await window.indexedDB.databases();
             for (const db of databases) {
-                if (db.name && (db.name.includes('webllm') || db.name.includes('mlc') || db.name.includes('web-llm'))) {
+                if (db.name && (db.name.includes('webllm') || db.name.includes('mlc') || db.name.includes('transformers'))) {
                     window.indexedDB.deleteDatabase(db.name);
                     console.log(`Deleted IndexedDB: ${db.name}`);
                 }

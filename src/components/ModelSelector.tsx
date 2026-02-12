@@ -14,6 +14,7 @@ interface ModelSelectorProps {
   progressText?: string;
   onDownload?: () => void;
   onCancel?: () => void;
+  activeEngine?: 'webllm' | 'transformers' | null;
 }
 
 export default function ModelSelector({
@@ -25,6 +26,7 @@ export default function ModelSelector({
   progressText = 'Loading...',
   onDownload,
   onCancel,
+  activeEngine,
 }: ModelSelectorProps) {
   // Only show download button if model is NOT cached, NOT ready, and NOT loading
   const showDownloadButton = !isReady && !isLoading && !isCached;
@@ -69,11 +71,24 @@ export default function ModelSelector({
               ) : (
                 <Download className="w-3.5 h-3.5" />
               )}
-              <span className="truncate flex-1">
+              <span className="truncate flex-1 flex items-center gap-2">
                 {isLoading 
                   ? `${Math.round(progress)}%` 
                   : isReady 
-                  ? ACTIVE_MODEL.name 
+                  ? (
+                      <>
+                        {ACTIVE_MODEL.name}
+                        {activeEngine && (
+                          <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium border ${
+                            activeEngine === 'webllm' 
+                              ? 'bg-green-100 text-green-700 border-green-200 dark:bg-green-900/30 dark:text-green-400 dark:border-green-800' 
+                              : 'bg-amber-100 text-amber-700 border-amber-200 dark:bg-amber-900/30 dark:text-amber-400 dark:border-amber-800'
+                          }`}>
+                            {activeEngine === 'webllm' ? 'GPU' : 'CPU'}
+                          </span>
+                        )}
+                      </>
+                    )
                   : isCached 
                   ? 'Model Cached' 
                   : ACTIVE_MODEL.name}

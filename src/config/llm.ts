@@ -4,6 +4,8 @@ export interface LLMConfig {
     temperature: number;
     topP: number;
     maxTokens: number;
+    fallbackModelId?: string; // ID for ONNX model used in CPU fallback
+    engine?: 'webllm' | 'transformers'; // Preferred engine
 }
 
 export interface ModelDetails {
@@ -22,7 +24,7 @@ export const MODELS: ModelDetails[] = [
         id: 'Llama-3.2-1B-Instruct-q4f16_1-MLC',
         name: 'Dia GenZ 1B',
         version: 'v0.1',
-        size: '~1.1GB',
+        size: '~730MB',
         quantization: 'q4f16_1',
         description: 'Fast & Efficient on-device model',
         status: 'available'
@@ -39,7 +41,7 @@ export const MODELS: ModelDetails[] = [
 export const ACTIVE_MODEL = MODELS[0];
 
 export const DEFAULT_CONFIG: LLMConfig = {
-    // Llama-3.2-1B - Much faster and lightweight (~1.1GB)
+    // Llama-3.2-1B - Much faster and lightweight (~730MB)
     // Using q4f16_1 quantization for best balance of speed/quality on consumer hardware
     modelId: 'Llama-3.2-1B-Instruct-q4f16_1-MLC',
 
@@ -48,4 +50,6 @@ export const DEFAULT_CONFIG: LLMConfig = {
     temperature: 0.7, // Lower temperature for more stable, focused responses
     topP: 0.9,
     maxTokens: 1024, // Reduced max tokens to prevent runaway generation
+    fallbackModelId: 'onnx-community/Llama-3.2-1B-Instruct',
+    engine: 'webllm' // Default preference
 };

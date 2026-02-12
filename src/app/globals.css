@@ -48,10 +48,15 @@
 }
 
 /* Base styles */
+html, body {
+  height: 100%;
+  height: 100dvh; /* Mobile viewport fix */
+  overflow: hidden; /* Prevent body scroll, handle in containers */
+  overscroll-behavior: none; /* Prevent pull-to-refresh */
+}
+
 html {
   scroll-behavior: smooth;
-
-  /* Account for navbar height */
 }
 
 body {
