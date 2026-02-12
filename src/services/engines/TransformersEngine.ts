@@ -1,162 +1,131 @@
 
-import { pipeline, env } from '@huggingface/transformers';
-import { LLMConfig } from '@/config/llm';
 import { LLMEngine, Message, ProgressInfo } from './LLMEngine';
-
-// Configure transformers.js to use WASM
-// env.allowLocalModels = false;
-// env.useBrowserCache = true;
-
-interface TransformersPipeline {
-    (prompt: string, options?: any): Promise<any>;
-}
+import { LLMConfig } from '@/config/llm';
 
 export class TransformersEngine implements LLMEngine {
-    private pipe: TransformersPipeline | null = null;
+    private worker: Worker | null = null;
     private isInitialized = false;
-    private initPromise: Promise<void> | null = null;
-    private abortController: AbortController | null = null;
-
-    constructor() { }
-
-    isReady(): boolean {
-        return this.isInitialized && this.pipe !== null;
-    }
 
     async initialize(
         config: LLMConfig,
         onProgress?: (progress: ProgressInfo) => void
     ): Promise<void> {
-        if (this.isInitialized && this.pipe) {
-            onProgress?.({ progress: 100, text: 'Ready!' });
-            return;
-        }
+        return new Promise((resolve, reject) => {
+            if (this.isInitialized) {
+                onProgress?.({ progress: 1, text: 'Ready!' });
+                return resolve();
+            }
 
-        if (this.initPromise) {
-            return this.initPromise;
-        }
+            try {
+                // Initialize the worker
+                this.worker = new Worker(new URL('./transformers.worker.ts', import.meta.url), {
+                    type: 'module'
+                });
 
-        this.initPromise = this.doInitialize(config, onProgress);
-        return this.initPromise;
-    }
+                this.worker.onmessage = (event) => {
+                    const { type, data, error } = event.data;
 
-    private async doInitialize(
-        config: LLMConfig,
-        onProgress?: (progress: ProgressInfo) => void
-    ): Promise<void> {
-        try {
-            onProgress?.({ progress: 10, text: 'Loading Transformers engine...' });
-
-            // Use the fallback model ID from config, or default if not set
-            const modelId = config.fallbackModelId || 'onnx-community/Llama-3.2-1B-Instruct';
-
-            console.log(`Initializing Transformers engine with model: ${modelId}`);
-
-            this.pipe = await pipeline('text-generation', modelId, {
-                device: 'wasm',
-                quantized: true, // Uses q8 by default or whatever is available
-                progress_callback: (data: any) => {
-                    if (data.status === 'progress' && onProgress) {
-                        // Map 0-100 based on file downloads
-                        // This is rough as there are multiple files
+                    if (type === 'progress' && onProgress) {
                         onProgress({
-                            progress: data.progress || 50,
-                            text: `Downloading ${data.file}...`
+                            text: `Loading model... (${Math.round(data.progress || 0)}%)`,
+                            progress: (data.progress || 0) / 100
                         });
+                    } else if (type === 'ready') {
+                        this.isInitialized = true;
+                        onProgress?.({ progress: 1, text: 'Ready!' });
+                        resolve();
+                    } else if (type === 'error') {
+                        console.error('Worker initialization error:', error);
+                        reject(new Error(error));
                     }
-                }
-            });
+                };
 
-            this.isInitialized = true;
-            onProgress?.({ progress: 100, text: 'Ready!' });
-        } catch (error) {
-            this.initPromise = null;
-            console.error('Failed to initialize Transformers engine:', error);
-            throw error;
-        }
+                this.worker.onerror = (errorEvent) => {
+                    console.error('Worker error:', errorEvent);
+                    reject(new Error(`Worker error: ${errorEvent.message}`));
+                };
+
+                this.worker.postMessage({ type: 'init', config });
+
+            } catch (error) {
+                console.error('Failed to create worker:', error);
+                reject(error);
+            }
+        });
     }
 
     async generateResponse(
         messages: Message[],
         onToken: (token: string) => void
     ): Promise<string> {
-        if (!this.pipe) {
+        if (!this.worker || !this.isInitialized) {
             throw new Error('Engine not initialized');
         }
 
-        this.abortController = new AbortController();
-        let fullResponse = '';
+        return new Promise((resolve, reject) => {
+            let fullText = '';
+            let previousTextLength = 0;
 
-        // Simple prompt construction for now - ideally use chat template
-        // Using a basic Llama 3 format manually if tokenizer doesn't apply chat template automatically
-        // Transformers.js pipeline usually handles chat if passed correctly, but often expects single string for text-generation
+            // Re-bind message handler for generation phase
+            this.worker!.onmessage = (event) => {
+                const { type, data, error } = event.data;
 
-        // Simplified chat template application:
-        const prompt = messages.map(m =>
-            `<|start_header_id|>${m.role}<|end_header_id|>\n\n${m.content}<|eot_id|>`
-        ).join('') + '<|start_header_id|>assistant<|end_header_id|>\n\n';
-
-        try {
-            const output = await this.pipe(prompt, {
-                max_new_tokens: 256, // Limit for CPU speed
-                temperature: 0.7,
-                do_sample: true,
-                top_k: 50,
-                callback_function: (beams: any[]) => {
-                    if (this.abortController?.signal.aborted) {
-                        return; // Stop generation logic if possible
+                if (type === 'update') {
+                    // Worker sends full text so far
+                    const newFullText = data;
+                    if (newFullText.length > previousTextLength) {
+                        const delta = newFullText.slice(previousTextLength);
+                        onToken(delta);
+                        previousTextLength = newFullText.length;
+                        fullText = newFullText;
                     }
+                } else if (type === 'complete') {
+                    // Final text might be sent in complete, or we just use fullText
+                    const finalText = data || fullText;
+                    // Send any remaining delta if needed? 
+                    // Usually complete data is the same as last update or slightly more.
+                    if (finalText.length > previousTextLength) {
+                        const delta = finalText.slice(previousTextLength);
+                        onToken(delta);
+                        fullText = finalText;
+                    }
+                    resolve(fullText);
+                } else if (type === 'error') {
+                    reject(new Error(error));
+                } else if (type === 'interrupted') {
+                    resolve(fullText);
+                }
+            };
 
-                    const decodedText = beams[0].output_token_ids;
-                    // Note: Transformers.js streaming callback implementation varies
-                    // The 'callback_function' gives tokens. Decoding inside loop is inefficient.
-                    // A better approach specifically for Transformers.js text-generation streamer:
+            const formattedMessages = messages.map(m => ({
+                role: m.role,
+                content: m.content
+            }));
+
+            this.worker!.postMessage({
+                type: 'generate',
+                data: {
+                    messages: formattedMessages
                 }
             });
-
-            // Re-implementing with streamer if available in version, otherwise standard await
-            // For now, implementing standard await then returning result as we refine streaming for CPU
-
-            // Actually, let's use the Streamer pattern if supported
-            // const streamer = new TextStreamer(this.pipe.tokenizer, {
-            //    callback_function: onToken
-            // });
-
-            // Fallback for standard implementation:
-            // Since CPU is slow, full generation wait is acceptable for MVP, but streaming is better.
-            // Let's assume standard output for now and improve streaming in next iteration.
-
-            const generatedText = output[0].generated_text;
-            // Strip prompt
-            const response = generatedText.slice(prompt.length);
-
-            // Emit all at once for now (MVP for CPU)
-            onToken(response);
-            return response;
-
-        } catch (error) {
-            if (this.abortController?.signal.aborted) {
-                throw new Error('Generation aborted');
-            }
-            throw error;
-        } finally {
-            this.abortController = null;
-        }
+        });
     }
 
     stop(): void {
-        if (this.abortController) {
-            this.abortController.abort();
+        if (this.worker) {
+            this.worker.postMessage({ type: 'interrupt' });
         }
     }
 
     async unload(): Promise<void> {
-        // Transformers.js pipeline disposal
-        if (this.pipe) {
-            // pipeline.dispose() if available
-            this.pipe = null;
+        if (this.worker) {
+            this.worker.terminate();
+            this.worker = null;
+            this.isInitialized = false;
         }
-        this.isInitialized = false;
-        this.initPromise = null;
+    }
+
+    isReady(): boolean {
+        return this.isInitialized;
     }
 }
