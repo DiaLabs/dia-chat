@@ -1,8 +1,6 @@
 import { CreateMLCEngine, MLCEngineInterface, ChatCompletionMessageParam } from '@mlc-ai/web-llm';
 import { LLMConfig, DEFAULT_CONFIG } from '@/config/llm';
 import { LLMEngine, Message, ProgressInfo } from './engines/LLMEngine';
-import { WebLLMEngine } from './engines/WebLLMEngine';
-import { TransformersEngine } from './engines/TransformersEngine';
 
 export class LLMService {
     private static instance: LLMService;
@@ -144,14 +142,18 @@ export class LLMService {
             this.activeEngineType = engineType;
 
             if (engineType === 'webllm') {
+                const { WebLLMEngine } = await import('./engines/WebLLMEngine');
                 this.engine = new WebLLMEngine();
             } else {
+                const { TransformersEngine } = await import('./engines/TransformersEngine');
                 this.engine = new TransformersEngine();
             }
 
             console.log(`Initializing ${engineType} engine...`);
 
-            await this.engine.initialize(config, onProgress);
+            if (this.engine) {
+                await this.engine.initialize(config, onProgress);
+            }
 
             this.isInitialized = true;
         } catch (error) {
