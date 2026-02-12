@@ -52,9 +52,6 @@ const nextConfig: NextConfig = {
       },
     ];
   },
-  // Explicitly tell Next.js to not bundle onnxruntime-node (it's for CPU fallback which we load dynamically anyway)
-  serverExternalPackages: ['onnxruntime-node', '@huggingface/transformers'],
-
   webpack: (config) => {
     config.resolve.alias = {
       ...config.resolve.alias,
