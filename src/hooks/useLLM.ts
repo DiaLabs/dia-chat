@@ -39,6 +39,12 @@ export function useLLM(): UseLLMResult {
 
         const checkCacheAndInit = async () => {
             try {
+                // Determine which engine we will be using (for UI feedback)
+                const backend = await service.current.getPreferredBackend();
+                if (mounted) {
+                    setActiveEngine(backend);
+                }
+
                 // If already initialized from another component, update state
                 if (service.current.isReady()) {
                     if (mounted) {

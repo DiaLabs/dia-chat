@@ -38,6 +38,14 @@ export default function Home() {
   const router = useRouter();
 
   useEffect(() => {
+    // Persist CPU preference if present in URL
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('cpu') === 'true' || params.get('forceCPU') === 'true') {
+        localStorage.setItem('dia-chat-force-cpu', 'true');
+      }
+    }
+
     // Redirect to chat page when user is authenticated
     // Use router.push instead of window.location.href to avoid hard reload
     if (user && !loading) {

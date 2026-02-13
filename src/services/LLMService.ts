@@ -22,7 +22,6 @@ export class LLMService {
 
     /**
      * Check if model is cached in browser
-     * Note: This check logic might need updates for Transformers.js cache
      */
     async isModelCached(): Promise<boolean> {
         // If already initialized, it's definitely available
@@ -30,22 +29,25 @@ export class LLMService {
             return true;
         }
 
-        // Check if the model's cache exists in browser storage
-        // This primarily checks WebLLM cache for now
-        // TODO: Add Transformers check
         try {
             // Check Cache API
-            const caches = await window.caches.keys();
-            const hasCacheAPI = caches.some(key => key.includes('webllm') || key.includes('mlc'));
+            const cacheKeys = await window.caches.keys();
 
-            // Check IndexedDB for model weights
+            // Check for WebLLM cache
+            const hasWebLLMCache = cacheKeys.some(key => key.includes('webllm') || key.includes('mlc'));
+
+            // Check for Transformers.js cache
+            // Default cache name is 'transformers-cache'
+            const hasTransformersCache = cacheKeys.some(key => key.includes('transformers-cache'));
+
+            // Check IndexedDB
             const databases = await window.indexedDB.databases();
             const hasIndexedDB = databases.some(db =>
                 db.name && (db.name.includes('webllm') || db.name.includes('mlc'))
             );
 
-            const isCached = hasCacheAPI || hasIndexedDB;
-            console.log(`Model cache check: CacheAPI=${hasCacheAPI}, IndexedDB=${hasIndexedDB}, Result=${isCached}`);
+            const isCached = hasWebLLMCache || hasTransformersCache || hasIndexedDB;
+            console.log(`Model cache check: WebLLM=${hasWebLLMCache}, Transformers=${hasTransformersCache}, IDB=${hasIndexedDB}`);
 
             return isCached;
         } catch (error) {
@@ -55,21 +57,36 @@ export class LLMService {
     }
 
     /**
+     * Public method to get the best backend (for UI prediction)
+     */
+    async getPreferredBackend(): Promise<'webllm' | 'transformers'> {
+        return this.detectBestBackend();
+    }
+
+    /**
      * Detect best available backend
      */
     private async detectBestBackend(): Promise<'webllm' | 'transformers'> {
-        // Check for preferred engine in config if we store it there dynamically
-        // But mainly check hardware
+        if (typeof window === 'undefined') return 'transformers';
 
-        // Debug: Allow forcing CPU via URL param (useful for testing fallback)
-        if (typeof window !== 'undefined') {
-            const params = new URLSearchParams(window.location.search);
-            if (params.get('cpu') === 'true' || params.get('forceCPU') === 'true') {
-                console.log('CPU mode forced via URL parameter.');
-                return 'transformers';
-            }
+        // 1. Check URL parameters and persist preference
+        const params = new URLSearchParams(window.location.search);
+        const urlForceCPU = params.get('cpu') === 'true' || params.get('forceCPU') === 'true';
+
+        if (urlForceCPU) {
+            localStorage.setItem('dia-chat-force-cpu', 'true');
+            console.log('CPU mode forced via URL and saved to localStorage.');
+            return 'transformers';
         }
 
+        // 2. Check persisted preference
+        const storedForceCPU = localStorage.getItem('dia-chat-force-cpu') === 'true';
+        if (storedForceCPU) {
+            console.log('CPU mode loaded from localStorage.');
+            return 'transformers';
+        }
+
+        // 3. Hardware check
         try {
             if (navigator.gpu) {
                 const adapter = await navigator.gpu.requestAdapter();
