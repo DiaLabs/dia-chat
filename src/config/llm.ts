@@ -51,5 +51,5 @@ export const DEFAULT_CONFIG: LLMConfig = {
     topP: 0.9,
     maxTokens: 1024, // Reduced max tokens to prevent runaway generation
     fallbackModelId: 'onnx-community/Llama-3.2-1B-Instruct',
-    engine: 'webllm' // Default preference
+    // engine: 'webllm' // Removed to allow auto-detection via detectBestBackend()
 };

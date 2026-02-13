@@ -45,6 +45,32 @@ const nextConfig: NextConfig = {
         source: '/',
         headers: [
           {
+            key: 'Cross-Origin-Embedder-Policy',
+            value: 'require-corp',
+          },
+          {
+            key: 'Cross-Origin-Opener-Policy',
+            value: 'same-origin',
+          },
+          {
+            key: 'Cross-Origin-Resource-Policy',
+            value: 'cross-origin',
+          },
+        ],
+      },
+      {
+        // Add headers for static assets including worker chunks
+        source: '/_next/static/:path*',
+        headers: [
+          {
+            key: 'Cross-Origin-Embedder-Policy',
+            value: 'require-corp',
+          },
+          {
+            key: 'Cross-Origin-Opener-Policy',
+            value: 'same-origin',
+          },
+          {
             key: 'Cross-Origin-Resource-Policy',
             value: 'cross-origin',
           },

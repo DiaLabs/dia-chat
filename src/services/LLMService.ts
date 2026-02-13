@@ -23,33 +23,32 @@ export class LLMService {
     /**
      * Check if model is cached in browser
      */
-    async isModelCached(): Promise<boolean> {
+    async isModelCached(engineType?: 'webllm' | 'transformers'): Promise<boolean> {
         // If already initialized, it's definitely available
         if (this.isInitialized && this.engine) {
             return true;
         }
 
         try {
+            // Determine which engine to check
+            const targetEngine = engineType || await this.detectBestBackend();
+            console.log(`Checking cache for engine: ${targetEngine}`);
+
             // Check Cache API
             const cacheKeys = await window.caches.keys();
 
-            // Check for WebLLM cache
-            const hasWebLLMCache = cacheKeys.some(key => key.includes('webllm') || key.includes('mlc'));
-
-            // Check for Transformers.js cache
-            // Default cache name is 'transformers-cache'
-            const hasTransformersCache = cacheKeys.some(key => key.includes('transformers-cache'));
-
-            // Check IndexedDB
-            const databases = await window.indexedDB.databases();
-            const hasIndexedDB = databases.some(db =>
-                db.name && (db.name.includes('webllm') || db.name.includes('mlc'))
-            );
-
-            const isCached = hasWebLLMCache || hasTransformersCache || hasIndexedDB;
-            console.log(`Model cache check: WebLLM=${hasWebLLMCache}, Transformers=${hasTransformersCache}, IDB=${hasIndexedDB}`);
-
-            return isCached;
+            if (targetEngine === 'webllm') {
+                const hasWebLLMCache = cacheKeys.some(key => key.includes('webllm') || key.includes('mlc'));
+                const databases = await window.indexedDB.databases();
+                const hasIndexedDB = databases.some(db =>
+                    db.name && (db.name.includes('webllm') || db.name.includes('mlc'))
+                );
+                return hasWebLLMCache || hasIndexedDB;
+            } else {
+                // Transformers.js cache
+                // Default cache name is 'transformers-cache'
+                return cacheKeys.some(key => key.includes('transformers-cache'));
+            }
         } catch (error) {
             console.warn('Failed to check model cache:', error);
             return false;
@@ -69,24 +68,23 @@ export class LLMService {
     private async detectBestBackend(): Promise<'webllm' | 'transformers'> {
         if (typeof window === 'undefined') return 'transformers';
 
-        // 1. Check URL parameters and persist preference
+        // 1. Check URL parameters (Highest priority for debugging)
         const params = new URLSearchParams(window.location.search);
         const urlForceCPU = params.get('cpu') === 'true' || params.get('forceCPU') === 'true';
 
         if (urlForceCPU) {
-            localStorage.setItem('dia-chat-force-cpu', 'true');
-            console.log('CPU mode forced via URL and saved to localStorage.');
+            console.log('CPU mode forced via URL.');
             return 'transformers';
         }
 
-        // 2. Check persisted preference
-        const storedForceCPU = localStorage.getItem('dia-chat-force-cpu') === 'true';
-        if (storedForceCPU) {
-            console.log('CPU mode loaded from localStorage.');
+        // 2. Check persisted settings preference
+        const inferenceMode = localStorage.getItem('dia-inference-mode');
+        if (inferenceMode === 'cpu') {
+            console.log('CPU mode enforced by settings.');
             return 'transformers';
         }
 
-        // 3. Hardware check
+        // 3. Hardware check (Auto / GPU preference)
         try {
             if (navigator.gpu) {
                 const adapter = await navigator.gpu.requestAdapter();
@@ -155,21 +153,43 @@ export class LLMService {
     ): Promise<void> {
         try {
             // Detect Engine
-            const engineType = config.engine || await this.detectBestBackend();
+            let engineType = config.engine || await this.detectBestBackend();
             this.activeEngineType = engineType;
 
-            if (engineType === 'webllm') {
-                const { WebLLMEngine } = await import('./engines/WebLLMEngine');
-                this.engine = new WebLLMEngine();
-            } else {
-                const { TransformersEngine } = await import('./engines/TransformersEngine');
-                this.engine = new TransformersEngine();
-            }
+            const initEngine = async (type: 'webllm' | 'transformers') => {
+                if (type === 'webllm') {
+                    const { WebLLMEngine } = await import('./engines/WebLLMEngine');
+                    this.engine = new WebLLMEngine();
+                } else {
+                    const { TransformersEngine } = await import('./engines/TransformersEngine');
+                    this.engine = new TransformersEngine();
+                }
 
-            console.log(`Initializing ${engineType} engine...`);
+                console.log(`Initializing ${type} engine...`);
+                if (this.engine) {
+                    await this.engine.initialize(config, onProgress);
+                }
+            };
 
-            if (this.engine) {
-                await this.engine.initialize(config, onProgress);
+            try {
+                await initEngine(engineType);
+            } catch (initError) {
+                // If WebLLM fails, try fallback to Transformers
+                if (engineType === 'webllm') {
+                    console.warn('WebLLM initialization failed, falling back to CPU/Transformers...', initError);
+
+                    // Cleanup failed engine
+                    this.engine = null;
+
+                    // Switch to transformers
+                    engineType = 'transformers';
+                    this.activeEngineType = engineType;
+
+                    // Retry initialization
+                    await initEngine('transformers');
+                } else {
+                    throw initError;
+                }
             }
 
             this.isInitialized = true;

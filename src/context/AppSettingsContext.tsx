@@ -11,6 +11,8 @@ interface AppSettingsContextType {
   setFontSize: (size: FontSize) => void;
   cacheDuration: number; // in days
   setCacheDuration: (days: number) => void;
+  inferenceMode: 'auto' | 'cpu' | 'gpu';
+  setInferenceMode: (mode: 'auto' | 'cpu' | 'gpu') => void;
   clearCache: () => void;
   clearAllData: () => void;
 }
@@ -42,6 +44,7 @@ export function AppSettingsProvider({ children, user }: AppSettingsProviderProps
   const [accentColor, setAccentColorState] = useState<AccentColor>('yellow');
   const [fontSize, setFontSizeState] = useState<FontSize>('medium');
   const [cacheDuration, setCacheDurationState] = useState<number>(7); // 7 days default
+  const [inferenceMode, setInferenceModeState] = useState<'auto' | 'cpu' | 'gpu'>('auto');
   const [mounted, setMounted] = useState(false);
 
   // Load settings from localStorage only if user is logged in
@@ -50,15 +53,18 @@ export function AppSettingsProvider({ children, user }: AppSettingsProviderProps
       const savedAccent = localStorage.getItem('dia-accent-color') as AccentColor | null;
       const savedFontSize = localStorage.getItem('dia-font-size') as FontSize | null;
       const savedCacheDuration = localStorage.getItem('dia-cache-duration');
+      const savedInferenceMode = localStorage.getItem('dia-inference-mode') as 'auto' | 'cpu' | 'gpu' | null;
 
       if (savedAccent) setAccentColorState(savedAccent);
       if (savedFontSize) setFontSizeState(savedFontSize);
       if (savedCacheDuration) setCacheDurationState(parseInt(savedCacheDuration));
+      if (savedInferenceMode) setInferenceModeState(savedInferenceMode);
     } else {
       // Reset to defaults when no user is logged in
       setAccentColorState('yellow');
       setFontSizeState('medium');
       setCacheDurationState(7);
+      setInferenceModeState('auto');
     }
 
     setMounted(true);
@@ -95,6 +101,11 @@ export function AppSettingsProvider({ children, user }: AppSettingsProviderProps
   const setCacheDuration = (days: number) => {
     setCacheDurationState(days);
     localStorage.setItem('dia-cache-duration', days.toString());
+  };
+
+  const setInferenceMode = (mode: 'auto' | 'cpu' | 'gpu') => {
+    setInferenceModeState(mode);
+    localStorage.setItem('dia-inference-mode', mode);
   };
 
   const clearCache = async () => {
@@ -150,6 +161,7 @@ export function AppSettingsProvider({ children, user }: AppSettingsProviderProps
     setAccentColor('yellow');
     setFontSize('medium');
     setCacheDuration(7);
+    setInferenceMode('auto');
   };
 
   if (!mounted) {
@@ -165,6 +177,8 @@ export function AppSettingsProvider({ children, user }: AppSettingsProviderProps
         setFontSize,
         cacheDuration,
         setCacheDuration,
+        inferenceMode,
+        setInferenceMode,
         clearCache,
         clearAllData,
       }}

@@ -3,6 +3,7 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { LLMService } from '@/services/LLMService';
 import { DEFAULT_CONFIG } from '@/config/llm';
+import { useAppSettings } from '@/context/AppSettingsContext';
 
 interface UseLLMResult {
     isReady: boolean;
@@ -25,6 +26,7 @@ interface UseLLMResult {
 
 export function useLLM(): UseLLMResult {
     const service = useRef(LLMService.getInstance());
+    const { inferenceMode } = useAppSettings();
     const [isReady, setIsReady] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [progress, setProgress] = useState(0);
@@ -41,12 +43,24 @@ export function useLLM(): UseLLMResult {
             try {
                 // Determine which engine we will be using (for UI feedback)
                 const backend = await service.current.getPreferredBackend();
+
+                // If the active engine is different from preferred, unload the old one
+                if (service.current.getActiveEngine() && service.current.getActiveEngine() !== backend) {
+                    console.log(`Switching engine from ${service.current.getActiveEngine()} to ${backend}`);
+                    await service.current.unload();
+                    if (mounted) {
+                        setIsReady(false);
+                        setIsCached(false);
+                        setActiveEngine(null);
+                    }
+                }
+
                 if (mounted) {
                     setActiveEngine(backend);
                 }
 
-                // If already initialized from another component, update state
-                if (service.current.isReady()) {
+                // If already initialized with correct engine, update state
+                if (service.current.isReady() && service.current.getActiveEngine() === backend) {
                     if (mounted) {
                         setIsReady(true);
                         setIsCached(true);
@@ -55,7 +69,7 @@ export function useLLM(): UseLLMResult {
                     return;
                 }
 
-                const cached = await service.current.isModelCached();
+                const cached = await service.current.isModelCached(backend);
                 if (mounted) {
                     setIsCached(cached);
                 }
@@ -67,7 +81,10 @@ export function useLLM(): UseLLMResult {
                     setError(null);
 
                     try {
-                        await service.current.initialize(DEFAULT_CONFIG, (progressInfo) => {
+                        // Pass explicit engine config or rely on detectBestBackend which now respects inferenceMode
+                        const config = { ...DEFAULT_CONFIG, engine: backend };
+
+                        await service.current.initialize(config, (progressInfo) => {
                             if (mounted) {
                                 setProgress(progressInfo.progress);
                                 setProgressText(progressInfo.text);
@@ -101,7 +118,7 @@ export function useLLM(): UseLLMResult {
         return () => {
             mounted = false;
         };
-    }, []);
+    }, [inferenceMode]); // Re-run when inferenceMode changes
 
     const initialize = useCallback(async () => {
         if (service.current.isReady()) {

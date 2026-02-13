@@ -211,7 +211,7 @@ export default function ChatInterface({
                 {/* Version Badge - Desktop */}
                 <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-green-500/10 dark:bg-green-900/30 border border-green-500/20 text-xs font-medium text-green-700 dark:text-green-400 ml-1">
                   <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" />
-                  <span>v0.1.0</span>
+                  <span>v0.2.1</span>
                 </div>
               </div>
             </div>

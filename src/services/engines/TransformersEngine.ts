@@ -10,39 +10,45 @@ export class TransformersEngine implements LLMEngine {
         config: LLMConfig,
         onProgress?: (progress: ProgressInfo) => void
     ): Promise<void> {
-        return new Promise((resolve, reject) => {
-            if (this.isInitialized) {
-                onProgress?.({ progress: 1, text: 'Ready!' });
-                return resolve();
-            }
+        if (this.isInitialized) {
+            onProgress?.({ progress: 100, text: 'Ready!' });
+            return Promise.resolve();
+        }
 
+        return new Promise((resolve, reject) => {
             try {
                 // Initialize the worker
                 this.worker = new Worker(new URL('./transformers.worker.ts', import.meta.url), {
                     type: 'module'
                 });
 
+                // Set up initialization message handler
                 this.worker.onmessage = (event) => {
                     const { type, data, error } = event.data;
 
-                    if (type === 'progress' && onProgress) {
-                        onProgress({
-                            text: `Loading model... (${Math.round(data.progress || 0)}%)`,
-                            progress: (data.progress || 0) / 100
-                        });
+                    if (type === 'progress') {
+                        if (onProgress && data) {
+                            onProgress({
+                                text: data.status || 'Loading...',
+                                progress: data.progress || 0
+                            });
+                        }
                     } else if (type === 'ready') {
                         this.isInitialized = true;
-                        onProgress?.({ progress: 1, text: 'Ready!' });
+                        onProgress?.({ progress: 100, text: 'Ready!' });
+                        // Clear the init handler to avoid interference later
+                        if (this.worker) this.worker.onmessage = null;
                         resolve();
                     } else if (type === 'error') {
                         console.error('Worker initialization error:', error);
-                        reject(new Error(error));
+                        reject(new Error(error || 'Unknown worker error'));
                     }
                 };
 
                 this.worker.onerror = (errorEvent) => {
-                    console.error('Worker error:', errorEvent);
-                    reject(new Error(`Worker error: ${errorEvent.message}`));
+                    console.error('Worker error details:', errorEvent);
+                    const errorMessage = errorEvent instanceof ErrorEvent ? errorEvent.message : 'Unknown worker error (check console)';
+                    reject(new Error(`Worker error: ${errorMessage}`));
                 };
 
                 this.worker.postMessage({ type: 'init', config });
@@ -81,6 +87,7 @@ export class TransformersEngine implements LLMEngine {
                     }
                 } else if (type === 'complete') {
                     // Final text might be sent in complete, or we just use fullText
+                    console.log('Engine: Worker completion data:', data);
                     const finalText = data || fullText;
                     // Send any remaining delta if needed? 
                     // Usually complete data is the same as last update or slightly more.

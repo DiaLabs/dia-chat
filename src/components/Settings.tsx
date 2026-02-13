@@ -1,6 +1,6 @@
 'use client';
 
-import { Fragment, useState } from 'react';
+import { Fragment, useState, useEffect } from 'react';
 import { Dialog, Transition, TransitionChild, DialogPanel, DialogTitle, Radio, RadioGroup } from '@headlessui/react';
 import { X, Sun, Moon, Monitor, Trash2, AlertTriangle, Cpu, Check, Loader2 } from 'lucide-react';
 import { useTheme } from '@/context/ThemeContext';
@@ -45,11 +45,19 @@ const cacheDurations: { value: number; label: string }[] = [
 
 export default function Settings({ isOpen, onClose, onRefreshChats }: SettingsProps) {
   const { theme, setTheme } = useTheme();
-  const { accentColor, setAccentColor, fontSize, setFontSize, cacheDuration, setCacheDuration, clearCache, clearAllData } = useAppSettings();
+  const { accentColor, setAccentColor, fontSize, setFontSize, cacheDuration, setCacheDuration, inferenceMode, setInferenceMode, clearCache, clearAllData } = useAppSettings();
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [modelCacheClearing, setModelCacheClearing] = useState(false);
   const [modelCacheCleared, setModelCacheCleared] = useState(false);
+  const [gpuAvailable, setGpuAvailable] = useState(false);
+
+  useEffect(() => {
+    // Check for WebGPU support
+    if (typeof navigator !== 'undefined' && navigator.gpu) {
+      setGpuAvailable(true);
+    }
+  }, []);
 
   const handleClearCache = async () => {
     await clearCache();
@@ -223,6 +231,42 @@ export default function Settings({ isOpen, onClose, onRefreshChats }: SettingsPr
                         </button>
                       ))}
                     </div>
+                  </div>
+
+                  {/* Inference Mode */}
+                  <div>
+                    <label className="block text-sm font-semibold text-neutral-700 dark:text-neutral-300 mb-3">
+                      Inference Engine
+                    </label>
+                    <div className="flex items-center gap-1 p-1 rounded-full bg-neutral-100 dark:bg-neutral-800">
+                      {[
+                        { value: 'auto', label: 'Auto' },
+                        { value: 'gpu', label: 'GPU', disabled: !gpuAvailable },
+                        { value: 'cpu', label: 'CPU' },
+                      ].map((mode) => (
+                        <button
+                          key={mode.value}
+                          disabled={mode.disabled}
+                          onClick={() => setInferenceMode(mode.value as 'auto' | 'cpu' | 'gpu')}
+                          className={clsx(
+                            'flex-1 px-3 py-2 rounded-full transition-all text-sm font-medium cursor-pointer',
+                            inferenceMode === mode.value
+                              ? 'bg-white dark:bg-neutral-700 shadow-sm text-[rgb(var(--primary))]'
+                              : mode.disabled 
+                                ? 'text-neutral-300 dark:text-neutral-600 cursor-not-allowed'
+                                : 'text-neutral-500 hover:text-neutral-900 dark:hover:text-white'
+                          )}
+                          title={mode.disabled ? 'WebGPU not available on this device' : ''}
+                        >
+                          {mode.label}
+                        </button>
+                      ))}
+                    </div>
+                    {!gpuAvailable && (
+                       <p className="text-[10px] text-amber-500 mt-1.5 ml-1">
+                         * WebGPU unavailable on this device. Using CPU mode.
+                       </p>
+                    )}
                   </div>
 
                   {/* AI Model - Compact */}
