@@ -197,19 +197,17 @@ export function useLLM(): UseLLMResult {
                     onToken(token);
                 });
 
+                // Calculate final stats
                 const endTime = performance.now();
                 const duration = (endTime - startTime) / 1000;
-                const tokensPerSec = tokenCount / duration;
-
-                console.log(`tokens/sec: ${tokensPerSec.toFixed(2)}, Assistant: ${response}`);
-                console.log(allMessages);
+                const tps = tokenCount / duration;
+                console.log(`Speed: ${tps.toFixed(2)} tokens/sec`);
 
                 return response;
             } catch (err: unknown) {
                 const errorMessage = err instanceof Error ? err.message : 'Failed to generate response';
                 if (errorMessage !== 'Generation aborted') {
                     console.error('Error generating response:', err);
-                    setError(errorMessage);
                 }
                 throw err;
             }

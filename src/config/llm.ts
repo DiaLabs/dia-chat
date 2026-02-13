@@ -23,7 +23,7 @@ export const MODELS: ModelDetails[] = [
     {
         id: 'Llama-3.2-1B-Instruct-q4f16_1-MLC',
         name: 'Dia GenZ 1B',
-        version: 'v0.1',
+        version: '0.1',
         size: '~730MB',
         quantization: 'q4f16_1',
         description: 'Fast & Efficient on-device model',

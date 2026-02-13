@@ -128,9 +128,6 @@ export default function ChatInterface({
         // Update message content as tokens arrive
         onUpdateMessage(assistantMessage.id, fullResponse);
       });
-
-      console.log(`Streaming complete. Total updates: ${updateCount}, Final response length: ${fullResponse.length}`);
-      console.log('Final response preview:', fullResponse.substring(0, 100));
       
       // Ensure final update is saved
       if (fullResponse) {
@@ -211,7 +208,7 @@ export default function ChatInterface({
                 {/* Version Badge - Desktop */}
                 <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-green-500/10 dark:bg-green-900/30 border border-green-500/20 text-xs font-medium text-green-700 dark:text-green-400 ml-1">
                   <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" />
-                  <span>v0.2.1</span>
+                  <span>v{process.env.NEXT_PUBLIC_APP_VERSION || '0.1.0'}</span>
                 </div>
               </div>
             </div>
@@ -222,7 +219,7 @@ export default function ChatInterface({
             <Logo className="w-6 h-6 text-[rgb(var(--primary))]" />
             <span className="font-bold text-neutral-900 dark:text-white text-lg">Dia Chat</span>
             <span className="text-xs font-medium text-green-600 dark:text-green-400 bg-green-500/10 px-1.5 py-0.5 rounded-full border border-green-500/20">
-              v0.1.0
+              v{process.env.NEXT_PUBLIC_APP_VERSION || '0.1.0'}
             </span>
           </div>
 

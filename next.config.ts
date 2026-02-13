@@ -1,42 +1,30 @@
 import type { NextConfig } from "next";
+import packageJson from './package.json';
 
 const nextConfig: NextConfig = {
+  env: {
+    NEXT_PUBLIC_APP_VERSION: packageJson.version,
+  },
   /* config options here */
   async headers() {
     return [
       {
-        // Apply COOP/COEP headers to chat page for SharedArrayBuffer (WebLLM)
+        // Apply lax headers to chat page to allow Firebase and Workers
         source: '/chat/:path*',
         headers: [
           {
             key: 'Cross-Origin-Opener-Policy',
-            value: 'same-origin',
-          },
-          {
-            key: 'Cross-Origin-Embedder-Policy',
-            value: 'require-corp',
-          },
-          {
-            key: 'Cross-Origin-Resource-Policy',
-            value: 'cross-origin',
+            value: 'same-origin-allow-popups',
           },
         ],
       },
       {
-        // Also apply headers to the main chat route
+        // Also apply lax headers to the main chat route
         source: '/chat',
         headers: [
           {
             key: 'Cross-Origin-Opener-Policy',
-            value: 'same-origin',
-          },
-          {
-            key: 'Cross-Origin-Embedder-Policy',
-            value: 'require-corp',
-          },
-          {
-            key: 'Cross-Origin-Resource-Policy',
-            value: 'cross-origin',
+            value: 'same-origin-allow-popups',
           },
         ],
       },

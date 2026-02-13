@@ -1,20 +1,23 @@
-
 import { pipeline, env } from '@huggingface/transformers';
 
+// Hack to fix TS errors with web worker types
+const ctx: any = self;
+
+// Only log critical startup info
 console.log('Transformers worker script loaded.');
 
 // Global error handlers
-self.onerror = (event: any, source?: string, lineno?: number, colno?: number, error?: Error) => {
+ctx.onerror = (event: any, source?: string, lineno?: number, colno?: number, error?: Error) => {
     console.error('Worker global error:', event, error);
-    self.postMessage({
+    ctx.postMessage({
         type: 'error',
         error: error ? error.message : (typeof event === 'string' ? event : 'Unknown worker error')
     });
 };
 
-self.onunhandledrejection = (event: any) => {
+ctx.onunhandledrejection = (event: any) => {
     console.error('Worker unhandled rejection:', event.reason);
-    self.postMessage({
+    ctx.postMessage({
         type: 'error',
         error: event.reason instanceof Error ? event.reason.message : 'Unhandled rejection in worker'
     });
@@ -24,30 +27,33 @@ self.onunhandledrejection = (event: any) => {
 env.allowLocalModels = false;
 env.useBrowserCache = true;
 // EXTREMELY IMPORTANT: Set the path to the WASM file via CDN to avoid bundler issues
-// Using version 1.24.1 to match package.json dependency
-env.backends.onnx.wasm.wasmPaths = 'https://cdn.jsdelivr.net/npm/onnxruntime-web@1.24.1/dist/';
-// Disable multi-threading to avoid blob worker issues
-env.backends.onnx.wasm.numThreads = 1;
-env.backends.onnx.wasm.proxy = false;
+// Using version 1.20.1 - known stable version for Transformers.js v3
+env.backends.onnx.wasm.wasmPaths = 'https://cdn.jsdelivr.net/npm/onnxruntime-web@1.20.1/dist/';
+// Disable multi-threading to avoid blob worker issues without COEP headers
+// Use max available threads for best CPU performance
+// If navigator.hardwareConcurrency is available, use it. Otherwise default to 4.
+const maxThreads = typeof navigator !== 'undefined' ? navigator.hardwareConcurrency : 4;
+env.backends.onnx.wasm.numThreads = maxThreads;
+env.backends.onnx.wasm.proxy = true;
 
 // Singleton to hold the pipeline instance
 class PipelineSingleton {
     static task = 'text-generation';
-    static model = 'onnx-community/Llama-3.2-1B-Instruct';
+    static model = 'onnx-community/Llama-3.2-1B-Instruct-q4f16';
     static instance: any = null;
 
     static async getInstance(progress_callback: any = null) {
         if (this.instance === null) {
             try {
-                console.log('Worker: Creating pipeline...');
+                // console.log('Worker: Creating pipeline...'); // Verbose
                 this.instance = await pipeline(this.task, this.model, {
                     dtype: 'q4', // 4-bit quantization
                     device: 'wasm',
                     progress_callback,
                 } as any);
-                console.log('Worker: Pipeline created successfully.');
+                console.log('Worker: Pipeline initialized.');
             } catch (err: any) {
-                console.error('Worker: Failed to create pipeline:', err);
+                console.error('Worker: Pipeline creation failed:', err);
                 throw err;
             }
         }
@@ -57,35 +63,45 @@ class PipelineSingleton {
 
 let isInterrupted = false;
 
-self.addEventListener('message', async (event: MessageEvent) => {
+ctx.addEventListener('message', async (event: MessageEvent) => {
     const { type, data } = event.data;
 
     if (type === 'init') {
         try {
             await PipelineSingleton.getInstance((progress: any) => {
-                self.postMessage({ type: 'progress', data: progress });
+                ctx.postMessage({ type: 'progress', data: progress });
             });
-            self.postMessage({ type: 'ready' });
+            ctx.postMessage({ type: 'ready' });
         } catch (error: any) {
-            self.postMessage({ type: 'error', error: error.message });
+            ctx.postMessage({ type: 'error', error: error.message });
         }
     } else if (type === 'generate') {
         try {
-            console.log('Worker: Received generate request');
+            // console.log('Worker: Received generate request'); // Verbose
             const { messages, max_new_tokens = 1024, temperature = 0.7 } = data;
-            console.log('Worker: Messages:', JSON.stringify(messages));
+            // console.log('Worker: Messages:', JSON.stringify(messages));
 
             const generator = await PipelineSingleton.getInstance();
             isInterrupted = false;
 
-            console.log('Worker: Starting generation with max_new_tokens:', max_new_tokens);
+            // Apply chat template silently
+            let prompt = messages;
+
+            // If the model supports chat templates, apply it. Most instruct models do.
+            if (generator.tokenizer && generator.tokenizer.chat_template) {
+                prompt = generator.tokenizer.apply_chat_template(messages, {
+                    tokenize: false,
+                    add_generation_prompt: true,
+                });
+            } else {
+                // console.warn('Worker: No chat template found, using raw messages (might fail)'); // Verbose
+            }
+
+            // console.log('Worker: Starting generation with max_new_tokens:', max_new_tokens); // Verbose
 
             // Simple stopping criteria using callback
             const callback_function = (beams: any[]) => {
-                // console.log('Worker: Callback triggered'); // Uncomment for very verbose logging
-                if (isInterrupted) {
-                    return true;
-                }
+                if (isInterrupted) return true;
 
                 try {
                     // Decode the current output to send updates
@@ -93,56 +109,46 @@ self.addEventListener('message', async (event: MessageEvent) => {
                         skip_special_tokens: true,
                     });
 
-                    self.postMessage({ type: 'update', data: decodedText });
+                    ctx.postMessage({ type: 'update', data: decodedText });
                 } catch (e) {
-                    console.error('Worker: Error in callback:', e);
+                    // console.error('Worker: Error in callback:', e); // Silent catch
                 }
             };
 
-            const output = await generator(messages, {
+            const output = await generator(prompt, {
                 max_new_tokens,
                 temperature,
                 do_sample: true,
                 callback_function,
             });
 
-            console.log('Worker: Generation complete');
+            // console.log('Worker: Generation complete'); // Verbose
 
             if (!isInterrupted) {
-                const finalText = output[0].generated_text;
-                // If it's an array of messages (chat format), extraction might be needed differently depending on library version
-                // but usually it returns the full text or the messages. 
-                // Let's assume text-generation returns the full string or array of messages.
-                // For 'text-generation' task with chat input, it usually returns the new message or full conversation.
-                // We'll send whatever we got.
-
-                // If the output is a list of messages (chat template used internally?), handling might differ.
-                // But normally pipeline returns valid object.
-
-                // For now, assume simple text or messages structure
-                // Logic: if output is array of objects with generated_text
-
                 let resultText = '';
-                if (Array.isArray(output) && output[0]?.generated_text) {
-                    resultText = output[0].generated_text;
-                    // If result is the *list* of messages (as some chat pipelines do), getting the last one:
-                    if (Array.isArray(resultText)) {
-                        // @ts-ignore
-                        resultText = resultText[resultText.length - 1].content;
+                // Handle different output formats
+                if (Array.isArray(output)) {
+                    const lastItem = output[output.length - 1];
+                    if (typeof lastItem === 'object' && lastItem.generated_text) {
+                        resultText = lastItem.generated_text;
+                    } else if (typeof lastItem === 'string') {
+                        resultText = lastItem;
                     }
+                } else if (typeof output === 'object' && output.generated_text) {
+                    resultText = output.generated_text;
                 }
 
-                self.postMessage({ type: 'complete', data: resultText });
+                ctx.postMessage({ type: 'complete', data: resultText });
             } else {
-                self.postMessage({ type: 'interrupted' });
+                ctx.postMessage({ type: 'interrupted' });
             }
 
         } catch (error: any) {
             console.error('Worker: Generation error:', error);
-            self.postMessage({ type: 'error', error: error.message });
+            ctx.postMessage({ type: 'error', error: error.message });
         }
     } else if (type === 'interrupt') {
         isInterrupted = true;
-        self.postMessage({ type: 'interrupted_request_received' });
+        ctx.postMessage({ type: 'interrupted_request_received' });
     }
 });

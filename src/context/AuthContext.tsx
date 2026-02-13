@@ -31,27 +31,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     let isMounted = true;
 
-    // Helper to save user to sessionStorage for persistence
-    const saveUserToSession = (userData: AuthUser | null) => {
-      if (typeof window !== 'undefined') {
-        if (userData) {
-          sessionStorage.setItem('dia-user', JSON.stringify(userData));
-        } else {
-          sessionStorage.removeItem('dia-user');
-        }
-      }
+    // Helper to save user to localStorage for persistence
+    const saveUserToLocalStorage = (userData: AuthUser | null) => {
+      // Inline implementation moved to usage sites, removing this helper
     };
 
-    // Try to restore from sessionStorage first
+    // Try to restore from localStorage first
     if (typeof window !== 'undefined') {
       try {
-        const storedUser = sessionStorage.getItem('dia-user');
+        const storedUser = localStorage.getItem('dia-user');
         if (storedUser) {
-          setUser(JSON.parse(storedUser));
-          console.log('Restored user from session:', JSON.parse(storedUser).email);
+          const parsedUser = JSON.parse(storedUser);
+          setUser(parsedUser);
+          // console.log('Restored user from session:', parsedUser.email);
         }
       } catch (error) {
-        console.warn('Failed to restore user from session:', error);
+        // Silent catch
+        localStorage.removeItem('dia-user');
       }
     }
 
@@ -65,7 +61,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (!isMounted) return;
         
         if (result?.user) {
-          console.log('User signed in via redirect:', result.user.email);
+          // console.log('User signed in via redirect:', result.user.email);
           // The onAuthStateChanged listener will handle the user state update
         }
       } catch (error: any) {
@@ -73,14 +69,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         console.error('Redirect sign-in error:', error);
         if (error.code === 'auth/network-request-failed' || error.message?.includes('network-request-failed')) {
           console.warn('Network error detected. Falling back to Guest mode.');
-          const guestUser = {
-            uid: 'guest-user',
-            email: 'guest@diachat.app',
-            displayName: 'Guest User',
+          const guestUser: AuthUser = {
+            uid: 'guest',
+            email: null,
+            displayName: 'Guest',
             photoURL: null,
           };
           setUser(guestUser);
-          saveUserToSession(guestUser);
+          localStorage.removeItem('dia-user'); 
           setLoading(false);
         }
       }
@@ -89,10 +85,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Start checking redirect result
     checkRedirectResult();
 
-    console.log('Setting up auth state listener...');
+    // console.log('Setting up auth state listener...');
     const unsubscribe = onAuthStateChanged(auth, (firebaseUser: FirebaseUser | null) => {
       if (!isMounted) return;
-      console.log('Auth state changed:', firebaseUser ? 'Logged In' : 'Logged Out');
+      // console.log('Auth state changed:', firebaseUser ? 'Logged In' : 'Logged Out');
       if (firebaseUser) {
         const userData = {
           uid: firebaseUser.uid,
@@ -101,10 +97,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           photoURL: firebaseUser.photoURL,
         };
         setUser(userData);
-        saveUserToSession(userData);
+        // Cache user
+        localStorage.setItem('dia-user', JSON.stringify(userData));
       } else {
         setUser(null);
-        saveUserToSession(null);
+        localStorage.removeItem('dia-user');
       }
       setLoading(false);
     });
@@ -112,7 +109,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Safety timeout: If Firebase doesn't respond in 5 seconds, stop loading
     const timeoutId = setTimeout(() => {
       if (isMounted && loading) {
-        console.warn('Auth state listener timed out. Forcing loading completion.');
+        // console.warn('Auth state listener timed out. Forcing loading completion.');
         setLoading(false);
       }
     }, 5000);
@@ -139,19 +136,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     try {
-      console.log('Initiating Google sign-in with popup...');
+      // console.log('Initiating Google sign-in with popup...');
       // Use popup for authentication
       const { signInWithPopup } = await import('firebase/auth');
       const result = await signInWithPopup(auth, googleProvider);
       if (result?.user) {
-        console.log('✅ User signed in via popup:', result.user.email);
+        // console.log('✅ User signed in via popup:', result.user.email);
       }
     } catch (error: any) {
-      console.error('❌ Google sign-in error:', error.code, error.message);
+      console.error('Sign-in error:', error.code);
       
       // Handle specific error cases
       if (error.code === 'auth/popup-blocked') {
-        console.warn('Popup blocked by browser, trying redirect...');
+        // console.warn('Popup blocked by browser, trying redirect...');
         try {
           const { signInWithRedirect } = await import('firebase/auth');
           await signInWithRedirect(auth, googleProvider);
@@ -160,7 +157,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           console.error('Redirect sign-in also failed:', redirectError);
         }
       } else if (error.code === 'auth/popup-closed-by-user') {
-        console.log('User closed the popup');
+        // console.log('User closed the popup');
         return; // Don't throw, user intentionally closed
       } else if (error.code === 'auth/unauthorized-domain') {
         alert('Error: localhost is not authorized in Firebase Console.\n\nPlease add "localhost" to Authorized domains in Firebase Console > Authentication > Settings > Authorized domains');

@@ -241,7 +241,7 @@ export function useChat(): UseChatResult {
                     prev.map((c) => (c.id === chatId ? updatedChat : c))
                 );
 
-                console.log(`Chat title updated: "${newTitle}"`);
+                // console.log(`Chat title updated: "${newTitle}"`);
             }
         } catch (error) {
             console.error('Failed to update chat title:', error);
@@ -289,7 +289,7 @@ export function useChat(): UseChatResult {
             await dbService.current.saveSummary(newSummary);
             setLatestSummary(newSummary);
 
-            console.log('Chat summarized successfully:', newSummary);
+            // console.log('Chat summarized successfully:', newSummary);
         } catch (error) {
             console.error('Failed to summarize chat:', error);
             // Don't throw - summarization is non-critical

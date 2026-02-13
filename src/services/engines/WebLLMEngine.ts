@@ -44,22 +44,27 @@ export class WebLLMEngine implements LLMEngine {
         this.cancelInitAbortController = new AbortController();
 
         try {
-            onProgress?.({ progress: 0, text: 'Initializing WebLLM...' });
+            // Initialize on GPU
+            console.log('Initializing on GPU...');
 
-            this.engine = await CreateMLCEngine(config.modelId, {
-                initProgressCallback: (report) => {
-                    if (this.cancelInitAbortController?.signal.aborted) {
-                        throw new Error('Download cancelled');
-                    }
-
-                    if (onProgress) {
-                        onProgress({
-                            progress: report.progress * 100,
-                            text: report.text,
-                        });
-                    }
-                },
-            });
+            this.engine = await CreateMLCEngine(
+                config.modelId, // Use config.modelId instead of this.selectedModel
+                {
+                    initProgressCallback: (report) => {
+                        if (this.cancelInitAbortController?.signal.aborted) {
+                            throw new Error('WebLLM initialization cancelled');
+                        }
+                        if (onProgress) {
+                            onProgress({
+                                progress: report.progress * 100, // WebLLM might report 0-1, so ensure scaling if needed, or 0-100 if updated
+                                text: report.text
+                            });
+                        }
+                    },
+                    logLevel: "WARN",
+                    // powerPreference removed
+                }
+            );
 
             this.isInitialized = true;
             this.cancelInitAbortController = null;

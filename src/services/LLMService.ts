@@ -32,7 +32,7 @@ export class LLMService {
         try {
             // Determine which engine to check
             const targetEngine = engineType || await this.detectBestBackend();
-            console.log(`Checking cache for engine: ${targetEngine}`);
+            // console.log(`Checking cache for engine: ${targetEngine}`);
 
             // Check Cache API
             const cacheKeys = await window.caches.keys();
@@ -73,14 +73,12 @@ export class LLMService {
         const urlForceCPU = params.get('cpu') === 'true' || params.get('forceCPU') === 'true';
 
         if (urlForceCPU) {
-            console.log('CPU mode forced via URL.');
             return 'transformers';
         }
 
         // 2. Check persisted settings preference
         const inferenceMode = localStorage.getItem('dia-inference-mode');
         if (inferenceMode === 'cpu') {
-            console.log('CPU mode enforced by settings.');
             return 'transformers';
         }
 
@@ -89,15 +87,13 @@ export class LLMService {
             if (navigator.gpu) {
                 const adapter = await navigator.gpu.requestAdapter();
                 if (adapter) {
-                    console.log('WebGPU is available. Using WebLLM engine.');
                     return 'webllm';
                 }
             }
         } catch (e) {
-            console.warn('WebGPU check failed:', e);
+            // WebGPU check failed, proceed to fallback
         }
 
-        console.log('WebGPU not available. Falling back to Transformers.js (CPU).');
         return 'transformers';
     }
 
@@ -122,7 +118,7 @@ export class LLMService {
 
         // Ensure previous engine is cleaned up if it exists but in bad state
         if (this.engine) {
-            console.log('Cleaning up previous engine instance...');
+            // console.log('Cleaning up previous engine instance...');
             await this.unload();
         }
 
@@ -165,7 +161,7 @@ export class LLMService {
                     this.engine = new TransformersEngine();
                 }
 
-                console.log(`Initializing ${type} engine...`);
+                // console.log(`Initializing ${type} engine...`);
                 if (this.engine) {
                     await this.engine.initialize(config, onProgress);
                 }
