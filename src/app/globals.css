@@ -48,11 +48,14 @@
 }
 
 /* Base styles */
-html, body {
+html,
+body {
   height: 100%;
-  height: 100dvh; /* Mobile viewport fix */
-  overflow: hidden; /* Prevent body scroll, handle in containers */
-  overscroll-behavior: none; /* Prevent pull-to-refresh */
+  height: 100dvh;
+  /* Mobile viewport fix */
+  /* overflow: hidden; Removed to allow scrolling by default */
+  overscroll-behavior: none;
+  /* Prevent pull-to-refresh */
 }
 
 html {
