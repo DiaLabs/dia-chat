@@ -30,8 +30,8 @@ export const MODELS: ModelDetails[] = [
         status: 'available'
     },
     {
-        id: 'dia-v1.0',
-        name: 'Dia v1.0',
+        id: 'dia-voice-0.1',
+        name: 'Dia voice',
         description: 'Coming Soon',
         status: 'coming_soon'
     }
