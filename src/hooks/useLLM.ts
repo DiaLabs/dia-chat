@@ -4,6 +4,7 @@ import { useState, useCallback, useRef, useEffect } from 'react';
 import { LLMService } from '@/services/LLMService';
 import { DEFAULT_CONFIG } from '@/config/llm';
 import { useAppSettings } from '@/context/AppSettingsContext';
+import { detectMoodType, getMoodInstructions } from '@/config/diaMoodHandling';
 
 interface UseLLMResult {
     isReady: boolean;
@@ -171,6 +172,17 @@ export function useLLM(): UseLLMResult {
 
                 // Build messages array with system prompt and context
                 let systemContent = DEFAULT_CONFIG.systemPrompt;
+
+                // Detect user mood from latest message for context-aware responses
+                const latestMessage = messages[messages.length - 1];
+                if (latestMessage && latestMessage.role === 'user') {
+                    const detectedMood = detectMoodType(latestMessage.content);
+                    if (detectedMood !== 'NEUTRAL') {
+                        const moodInstructions = getMoodInstructions(detectedMood);
+                        systemContent += `\n${moodInstructions}`;
+                        console.log(`Mood detected: ${detectedMood}`);
+                    }
+                }
 
                 // Add context summary if available
                 if (contextSummary) {
