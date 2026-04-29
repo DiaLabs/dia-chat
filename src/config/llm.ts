@@ -1,3 +1,5 @@
+import { DIA_FULL_SYSTEM_PROMPT } from './diaSystemPrompt';
+
 export interface LLMConfig {
     modelId: string;
     systemPrompt: string;
@@ -45,7 +47,7 @@ export const DEFAULT_CONFIG: LLMConfig = {
     // Using q4f16_1 quantization for best balance of speed/quality on consumer hardware
     modelId: 'Llama-3.2-1B-Instruct-q4f16_1-MLC',
 
-    systemPrompt: `Your name is Dia and you are a warm, emotionally intelligent, Gen-Z style friend, created by DiaLabs. Respond with GenZ terms, some emojis,bit of humor, reassurance, and a calm conversational tone. Keep replies short, human, and supportive. 2 paragraphs max.`,
+    systemPrompt: DIA_FULL_SYSTEM_PROMPT,
 
     temperature: 0.7, // Lower temperature for more stable, focused responses
     topP: 0.9,

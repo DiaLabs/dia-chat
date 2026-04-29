@@ -264,10 +264,10 @@ export function useChat(): UseChatResult {
             let summaryContent: string;
 
             if (!existingSummary) {
-                // First summary
+                // First summary - use cloud LLM for quality
                 summaryContent = await openRouterService.current.summarize(messagesToSummarize);
             } else {
-                // Merge with previous summary
+                // Merge with previous summary - use cloud LLM for quality
                 summaryContent = await openRouterService.current.mergeSummary(
                     existingSummary.content,
                     messagesToSummarize
