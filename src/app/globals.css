@@ -2,50 +2,48 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
+@theme {
+  --color-primary: rgb(var(--primary));
+  --color-primary-hover: rgb(var(--primary-hover));
+  --color-secondary: rgb(var(--secondary));
+  --color-accent: rgb(var(--accent));
+  --color-surface: rgb(var(--surface));
+  --color-surface-secondary: rgb(var(--surface-secondary));
+  --color-border: rgb(var(--border));
+  --color-muted: rgb(var(--muted));
+  --color-card-bg: rgb(var(--card-bg));
+  --color-card-border: rgb(var(--card-border));
+}
+
 /* ===========================================
    Dia Chat - Design System
    Color Scheme: Warm Amber/Yellow for happiness
    =========================================== */
 
 :root {
-  /* Light theme - explicitly set */
-  --background: 255 253 250;
-  --foreground: 23 23 23;
+  /* Light theme - Warm Cream / Paper off-white */
+  --background: 251 249 244; /* Premium warm paper cream #FBF9F4 */
+  --foreground: 15 23 42; /* #0F172A */
 
   /* Primary - Warm Amber */
-  --primary: 251 191 36;
-  --primary-hover: 245 158 11;
+  --primary: 255 176 0; /* #FFB000 */
+  --primary-hover: 230 158 0;
 
-  /* Surfaces - LIGHT backgrounds */
+  /* Ocean Teal */
+  --secondary: 20 184 166; /* #14B8A6 */
+  --accent: 204 251 241; /* #CCFBF1 */
+
+  /* Surfaces - Warm layouts */
   --surface: 255 255 255;
-  --surface-secondary: 250 250 249;
-  --border: 229 229 229;
+  --surface-secondary: 246 242 235; /* Matching warm grey-cream */
+  --border: 234 228 218; /* Soft warm border */
   --muted: 115 115 115;
 
   /* Card backgrounds for light theme */
   --card-bg: 255 255 255;
-  --card-border: 229 229 229;
+  --card-border: 234 228 218;
 }
 
-.dark {
-  /* Dark theme */
-  --background: 10 10 10;
-  --foreground: 250 250 250;
-
-  /* Primary - Warm Amber */
-  --primary: 251 191 36;
-  --primary-hover: 252 211 77;
-
-  /* Surfaces - DARK backgrounds */
-  --surface: 23 23 23;
-  --surface-secondary: 38 38 38;
-  --border: 38 38 38;
-  --muted: 163 163 163;
-
-  /* Card backgrounds for dark theme */
-  --card-bg: 23 23 23;
-  --card-border: 38 38 38;
-}
 
 /* Base styles */
 html,
@@ -65,7 +63,11 @@ html {
 body {
   background-color: rgb(var(--background));
   color: rgb(var(--foreground));
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family: var(--font-inter), system-ui, -apple-system, sans-serif;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-lora), Georgia, serif;
 }
 
 /* Sections scroll offset */
@@ -84,45 +86,20 @@ section[id] {
   background-color: rgb(var(--background));
 }
 
-/* Grid pattern - LARGER SIZE (80px) with visible lines */
+/* Grid pattern - Denser size (40px) with top-to-bottom fading mask */
 .hero-bg::before {
   content: '';
   position: absolute;
   inset: 0;
   background-image:
-    linear-gradient(to right, rgb(0 0 0 / 0.07) 1px, transparent 1px),
-    linear-gradient(to bottom, rgb(0 0 0 / 0.07) 1px, transparent 1px);
-  background-size: 80px 80px;
+    linear-gradient(to right, rgb(0 0 0 / 0.04) 1px, transparent 1px),
+    linear-gradient(to bottom, rgb(0 0 0 / 0.04) 1px, transparent 1px);
+  background-size: 40px 40px;
+  mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0.8) 60%, rgba(0, 0, 0, 0.1) 85%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0.8) 60%, rgba(0, 0, 0, 0.1) 85%, transparent 100%);
 }
 
-.dark .hero-bg::before {
-  background-image:
-    linear-gradient(to right, rgb(255 255 255 / 0.07) 1px, transparent 1px),
-    linear-gradient(to bottom, rgb(255 255 255 / 0.07) 1px, transparent 1px);
-}
 
-/* Fixed glowing orbs at bottom */
-.hero-bg::after {
-  content: '';
-  position: fixed;
-  bottom: -200px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 150%;
-  height: 500px;
-  background:
-    radial-gradient(ellipse 40% 50% at 30% 100%, rgb(251 191 36 / 0.25) 0%, transparent 60%),
-    radial-gradient(ellipse 40% 50% at 70% 100%, rgb(251 146 60 / 0.2) 0%, transparent 60%),
-    radial-gradient(ellipse 50% 40% at 50% 100%, rgb(253 224 71 / 0.15) 0%, transparent 50%);
-  pointer-events: none;
-}
-
-.dark .hero-bg::after {
-  background:
-    radial-gradient(ellipse 40% 50% at 30% 100%, rgb(251 191 36 / 0.12) 0%, transparent 60%),
-    radial-gradient(ellipse 40% 50% at 70% 100%, rgb(251 146 60 / 0.1) 0%, transparent 60%),
-    radial-gradient(ellipse 50% 40% at 50% 100%, rgb(253 224 71 / 0.08) 0%, transparent 50%);
-}
 
 /* ==========================================
    Floating Navbar (Pill)
@@ -130,6 +107,7 @@ section[id] {
 .navbar {
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   outline: none;
+  border: 1px solid transparent;
 }
 
 .navbar:focus {
@@ -141,6 +119,7 @@ section[id] {
   max-width: 1200px;
   padding-left: 3rem;
   padding-right: 3rem;
+  border-color: transparent;
 }
 
 @media (max-width: 768px) {
@@ -155,14 +134,15 @@ section[id] {
   margin-left: auto;
   margin-right: auto;
   padding-left: 1.5rem;
-  padding-right: 1rem;
+  padding-right: 1.5rem;
   border-radius: 9999px;
+  -webkit-backdrop-filter: blur(16px);
   backdrop-filter: blur(16px);
-  background: rgb(var(--surface) / 0.9);
+  background: rgb(var(--surface) / 0.65);
+  border-color: rgb(var(--border) / 0.6);
   box-shadow:
-    0 4px 6px -1px rgb(0 0 0 / 0.1),
-    0 2px 4px -2px rgb(0 0 0 / 0.1),
-    0 0 0 1px rgb(0 0 0 / 0.05);
+    0 4px 6px -1px rgb(0 0 0 / 0.05),
+    0 2px 4px -2px rgb(0 0 0 / 0.05);
 }
 
 @media (max-width: 768px) {
@@ -172,12 +152,7 @@ section[id] {
   }
 }
 
-.dark .navbar-floating {
-  box-shadow:
-    0 4px 6px -1px rgb(0 0 0 / 0.3),
-    0 2px 4px -2px rgb(0 0 0 / 0.2),
-    0 0 0 1px rgb(255 255 255 / 0.05);
-}
+
 
 /* Remove all focus rings from navbar */
 .navbar *:focus,
@@ -215,6 +190,14 @@ section[id] {
   outline-offset: 2px;
 }
 
+input:focus,
+input:focus-visible,
+textarea:focus,
+textarea:focus-visible {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
 /* Selection */
 ::selection {
   background-color: rgb(var(--primary) / 0.3);
@@ -227,4 +210,26 @@ section[id] {
       transparent,
       rgb(var(--border)),
       transparent);
+}
+
+/* Lenis smooth scrolling styles */
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+
+.lenis.lenis-scrolling iframe {
+  pointer-events: none;
 }
