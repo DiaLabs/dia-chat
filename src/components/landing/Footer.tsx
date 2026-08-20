@@ -16,9 +16,15 @@ export default function Footer() {
       const targetId = href.replace('#', '');
       const element = document.getElementById(targetId);
       if (element) {
-        element.scrollIntoView({
-          behavior: 'smooth',
-          block: 'start'
+        // Temporarily force static position to bypass sticky offset positioning
+        const originalPosition = element.style.position;
+        element.style.position = 'static';
+        const staticTop = element.getBoundingClientRect().top + window.pageYOffset;
+        element.style.position = originalPosition;
+
+        window.scrollTo({
+          top: staticTop,
+          behavior: 'smooth'
         });
         window.history.pushState(null, '', href);
       }
