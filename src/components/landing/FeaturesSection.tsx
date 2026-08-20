@@ -1,41 +1,35 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { Heart, MessageCircle, Lock, LucideIcon } from 'lucide-react';
 
 interface IconProps {
   color: string;
 }
 
-// Custom Hand-drawn SVG doodle icons with organic sketch lines and drawing animations
+// Custom Hand-drawn SVG doodle icons that draw their outlines first, then fill in fully
 const HandDrawnHeart = ({ color }: IconProps) => (
   <svg className="w-full h-full" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-    {/* Inner Scribble Fill */}
-    <motion.path
-      d="M30 35 Q40 28 50 35 Q60 28 70 35 Q65 48 50 62 Q35 48 30 35 Z M35 40 Q50 35 65 40 Q58 48 50 55 Q42 48 35 40 Z"
-      stroke={color}
-      strokeWidth="6"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      opacity="0.18"
-      initial={{ pathLength: 0, opacity: 0 }}
-      whileInView={{ pathLength: 1, opacity: 0.18 }}
-      viewport={{ once: true, margin: "-80px" }}
-      transition={{ duration: 1.4, delay: 0.5, ease: "easeInOut" }}
-    />
-    {/* Primary Outline */}
+    {/* Main Heart Path - Animates outline first, then fills completely */}
     <motion.path
       d="M50 82 C25 65, 10 45, 12 30 C14 15, 30 12, 42 22 C47 26, 50 30, 50 30 C50 30, 53 26, 58 22 C70 12, 86 15, 88 30 C90 45, 75 65, 50 82 Z"
       stroke={color}
       strokeWidth="3.5"
       strokeLinecap="round"
       strokeLinejoin="round"
-      initial={{ pathLength: 0 }}
-      whileInView={{ pathLength: 1 }}
+      initial={{ pathLength: 0, fill: 'transparent', fillOpacity: 0 }}
+      whileInView={{ 
+        pathLength: 1, 
+        fill: color,
+        fillOpacity: 0.18 
+      }}
       viewport={{ once: true, margin: "-80px" }}
-      transition={{ duration: 1.2, ease: "easeOut" }}
+      transition={{ 
+        pathLength: { duration: 1.2, ease: "easeOut" },
+        fill: { duration: 0.8, delay: 0.8 },
+        fillOpacity: { duration: 0.8, delay: 0.8 }
+      }}
     />
-    {/* Secondary Imperfect Sketchy Outline Offset */}
+    {/* Secondary Imperfect Sketchy Outline for hand-drawn look */}
     <motion.path
       d="M51 80 C27 63, 13 46, 15 32 C17 18, 31 14, 43 23 C48 27, 50 30, 50 30 C50 30, 52 27, 57 23 C68 14, 84 17, 86 32 C88 46, 73 63, 51 80 Z"
       stroke={color}
@@ -53,32 +47,27 @@ const HandDrawnHeart = ({ color }: IconProps) => (
 
 const HandDrawnChat = ({ color }: IconProps) => (
   <svg className="w-full h-full" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-    {/* Inner Scribble Fill */}
-    <motion.path
-      d="M28 45 Q38 38 52 38 Q66 38 72 45 Q70 54 60 58 Q48 58 38 56 Q30 52 28 45 Z"
-      stroke={color}
-      strokeWidth="6"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      opacity="0.18"
-      initial={{ pathLength: 0, opacity: 0 }}
-      whileInView={{ pathLength: 1, opacity: 0.18 }}
-      viewport={{ once: true, margin: "-80px" }}
-      transition={{ duration: 1.4, delay: 0.5, ease: "easeInOut" }}
-    />
-    {/* Primary Outline */}
+    {/* Main Chat Bubble - Animates outline first, then fills completely */}
     <motion.path
       d="M18 45 C15 25, 35 15, 52 16 C70 17, 86 28, 84 48 C82 66, 64 74, 46 72 C38 71, 30 76, 22 81 C25 73, 23 66, 19 60 C15 55, 18 48, 18 45 Z"
       stroke={color}
       strokeWidth="3.5"
       strokeLinecap="round"
       strokeLinejoin="round"
-      initial={{ pathLength: 0 }}
-      whileInView={{ pathLength: 1 }}
+      initial={{ pathLength: 0, fill: 'transparent', fillOpacity: 0 }}
+      whileInView={{ 
+        pathLength: 1, 
+        fill: color,
+        fillOpacity: 0.18 
+      }}
       viewport={{ once: true, margin: "-80px" }}
-      transition={{ duration: 1.2, ease: "easeOut" }}
+      transition={{ 
+        pathLength: { duration: 1.2, ease: "easeOut" },
+        fill: { duration: 0.8, delay: 0.8 },
+        fillOpacity: { duration: 0.8, delay: 0.8 }
+      }}
     />
-    {/* Secondary Imperfect Sketchy Outline Offset */}
+    {/* Secondary Imperfect Sketchy Outline */}
     <motion.path
       d="M20 46 C17 27, 36 17, 53 18 C71 19, 84 30, 82 49 C80 65, 63 72, 47 71 C39 70, 31 75, 23 80 C26 73, 24 67, 20 60 Z"
       stroke={color}
@@ -107,20 +96,7 @@ const HandDrawnChat = ({ color }: IconProps) => (
 
 const HandDrawnLock = ({ color }: IconProps) => (
   <svg className="w-full h-full" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-    {/* Inner Scribble Fill */}
-    <motion.path
-      d="M32 50 Q50 47 68 50 Q66 65 68 78 Q50 81 32 78 Q34 65 32 50 Z"
-      stroke={color}
-      strokeWidth="6"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      opacity="0.18"
-      initial={{ pathLength: 0, opacity: 0 }}
-      whileInView={{ pathLength: 1, opacity: 0.18 }}
-      viewport={{ once: true, margin: "-80px" }}
-      transition={{ duration: 1.4, delay: 0.5, ease: "easeInOut" }}
-    />
-    {/* Lock Body */}
+    {/* Lock Body - Animates outline first, then fills completely */}
     <motion.rect
       x="22"
       y="42"
@@ -131,10 +107,18 @@ const HandDrawnLock = ({ color }: IconProps) => (
       strokeWidth="3.5"
       strokeLinecap="round"
       strokeLinejoin="round"
-      initial={{ pathLength: 0 }}
-      whileInView={{ pathLength: 1 }}
+      initial={{ pathLength: 0, fill: 'transparent', fillOpacity: 0 }}
+      whileInView={{ 
+        pathLength: 1, 
+        fill: color,
+        fillOpacity: 0.18 
+      }}
       viewport={{ once: true, margin: "-80px" }}
-      transition={{ duration: 1.1, ease: "easeOut" }}
+      transition={{ 
+        pathLength: { duration: 1.1, ease: "easeOut" },
+        fill: { duration: 0.8, delay: 0.8 },
+        fillOpacity: { duration: 0.8, delay: 0.8 }
+      }}
     />
     <motion.rect
       x="24"
