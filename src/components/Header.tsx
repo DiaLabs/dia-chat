@@ -62,16 +62,9 @@ function HoverNavLink({ name, href, external }: NavLink) {
             const targetId = href.replace('#', '');
             const element = document.getElementById(targetId);
             if (element) {
-                // Calculate true static offset relative to document
-                let top = 0;
-                let curr: HTMLElement | null = element;
-                while (curr) {
-                    top += curr.offsetTop;
-                    curr = curr.offsetParent as HTMLElement | null;
-                }
-                window.scrollTo({
-                    top: top - 10,
-                    behavior: 'smooth'
+                element.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start'
                 });
                 window.history.pushState(null, '', href);
             }
