@@ -240,7 +240,6 @@ const ScrollStack: React.FC<ScrollStackProps> = ({
         easing: t => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
         smoothWheel: true,
         infinite: false,
-        normalizeWheel: true,
         wheelMultiplier: 1,
         lerp: 0.1,
       });
