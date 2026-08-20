@@ -1,6 +1,6 @@
 {
   "name": "dia-chat",
-  "version": "0.9.6",
+  "version": "0.9.8",
   "private": true,
   "scripts": {
     "dev": "next dev --webpack",

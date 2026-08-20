@@ -250,15 +250,15 @@ export default function FeaturesSection() {
               >
                 {/* Washi Tape */}
                 <div 
-                  className={`absolute top-0 ${
+                  className={`absolute top-0.5 sm:top-1 ${
                     feature.tapePosition === 'left' 
                       ? 'left-8 sm:left-16 -rotate-6' 
                       : feature.tapePosition === 'right' 
                       ? 'right-8 sm:right-16 rotate-6' 
                       : 'left-1/2 -translate-x-1/2 -rotate-1'
-                  } w-32 h-8 bg-[#F5DC9C]/90 dark:bg-[#7A6230]/80 border-t border-b border-[#E0C37B]/70 dark:border-[#967B40]/60 shadow-xs pointer-events-none z-30`}
+                  } w-36 sm:w-44 h-9 sm:h-11 bg-[#F4DE9C]/90 dark:bg-[#7D6433]/80 border-t border-b border-[#EACD79]/70 dark:border-[#967B40]/60 shadow-xs pointer-events-none z-30`}
                   style={{
-                    clipPath: 'polygon(0% 0%, 5% 100%, 95% 100%, 100% 0%, 97% 50%, 3% 50%)',
+                    clipPath: 'polygon(0% 12%, 4% 0%, 2% 28%, 5% 42%, 1% 56%, 4% 70%, 2% 84%, 0% 98%, 100% 100%, 96% 84%, 98% 70%, 95% 56%, 98% 42%, 95% 28%, 97% 12%, 100% 0%)',
                   }}
                 />
 
