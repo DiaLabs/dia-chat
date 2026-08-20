@@ -76,7 +76,7 @@ function HoverNavLink({ name, href, external }: NavLink) {
             href={href}
             onMouseEnter={() => setHovered(true)}
             onMouseLeave={() => setHovered(false)}
-            className="text-sm font-medium text-neutral-600 hover:text-neutral-900 transition-colors"
+            className="text-sm font-medium text-neutral-600 dark:text-neutral-300 hover:text-neutral-900 dark:hover:text-white transition-colors"
         >
             {content}
         </Link>
@@ -124,7 +124,7 @@ export default function Header() {
                     {/* Mobile menu button */}
                     <button
                         onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                        className="md:hidden p-2 -ml-2 rounded-lg hover:bg-neutral-100 text-neutral-700 transition-colors"
+                        className="md:hidden p-2 -ml-2 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-800 text-neutral-700 dark:text-neutral-200 transition-colors"
                     >
                         {mobileMenuOpen ? (
                             <X className="w-5 h-5" />
@@ -157,7 +157,7 @@ export default function Header() {
                             className="w-7 h-7 sm:w-8 sm:h-8 md:w-9 md:h-9 text-primary transition-transform duration-300 group-hover:scale-105"
                             hovered={logoHovered}
                         />
-                        <span className="text-lg sm:text-xl md:text-2xl font-bold text-neutral-900 tracking-tight">
+                        <span className="text-lg sm:text-xl md:text-2xl font-bold text-neutral-900 dark:text-white tracking-tight">
                             Dia Chat
                         </span>
                     </Link>

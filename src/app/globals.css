@@ -44,6 +44,31 @@
   --card-border: 234 228 218;
 }
 
+.dark {
+  /* Dark theme - Rich Obsidian / Warm Dark Parchment */
+  --background: 18 17 16; /* #121110 */
+  --foreground: 245 242 236; /* #F5F2EC */
+
+  /* Primary - Warm Amber */
+  --primary: 240 169 85; /* #F0A955 */
+  --primary-hover: 218 147 63;
+
+  /* Surfaces */
+  --surface: 26 25 22; /* #1A1916 */
+  --surface-secondary: 34 32 28; /* #22201C */
+  --border: 44 41 36; /* #2C2924 */
+  --muted: 163 158 147;
+
+  /* Card backgrounds */
+  --card-bg: 28 27 24;
+  --card-border: 44 41 36;
+}
+
+html.dark body {
+  background-color: #121110;
+  color: #F5F2EC;
+}
+
 
 /* Base styles */
 html,
@@ -165,23 +190,38 @@ section[id] {
    Utility Classes
    ========================================== */
 
-/* Custom scrollbar */
+/* Custom scrollbar matching warm papery theme */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 10px;
+  height: 10px;
 }
 
 ::-webkit-scrollbar-track {
-  background: transparent;
+  background: #FBF9F4;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgb(var(--muted) / 0.3);
-  border-radius: 4px;
+  background: #E5E0D8;
+  border-radius: 9999px;
+  border: 2px solid #FBF9F4;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgb(var(--muted) / 0.5);
+  background: #D5CBB9;
+}
+
+/* Dark mode scrollbar */
+html.dark ::-webkit-scrollbar-track {
+  background: #121110 !important;
+}
+
+html.dark ::-webkit-scrollbar-thumb {
+  background: #332F28 !important;
+  border: 2px solid #121110 !important;
+}
+
+html.dark ::-webkit-scrollbar-thumb:hover {
+  background: #4A443A !important;
 }
 
 /* Focus styles */

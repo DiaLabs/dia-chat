@@ -40,7 +40,7 @@ export default function Footer() {
                             <span className="text-lg">Dia Chat</span>
                         </Link>
                         <p className="text-sm text-neutral-500 ">
-                            AI Therapist for GenZ
+                            Empathetic AI Companion
                         </p>
                     </div>
 

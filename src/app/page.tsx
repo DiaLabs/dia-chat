@@ -21,6 +21,7 @@ export default function Home() {
   const { user, loading } = useAuth();
   const router = useRouter();
   const [introCompleted, setIntroCompleted] = useState(false);
+  const [heroExpanded, setHeroExpanded] = useState(false);
 
   useEffect(() => {
     if (user && !loading) {
@@ -43,19 +44,19 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-white selection:bg-primary/30">
+    <div className="min-h-screen flex flex-col bg-[#FBF9F4] dark:bg-[#121110] selection:bg-primary/30 transition-colors duration-300">
       {!introCompleted && <Preloader onComplete={() => setIntroCompleted(true)} />}
       <div className="hero-bg" aria-hidden="true" />
       <Header />
       
       <main className="flex-1 relative">
-        {/* Sticky Hero */}
-        <div className="sticky top-0 z-0 w-full">
-          <HeroSection startAnimation={introCompleted} />
+        {/* Sticky Hero — only sticky on desktop (md:) and only when not expanded */}
+        <div className={`${heroExpanded ? 'relative' : 'md:sticky md:top-0'} z-0 w-full`}>
+          <HeroSection startAnimation={introCompleted} onExpandedChange={setHeroExpanded} />
         </div>
         
         {/* Card that slides up over the hero */}
-        <div className="relative z-10 bg-[#FBF9F4] shadow-[0_-20px_50px_rgba(0,0,0,0.05)] border-t border-[#E5E0D8] rounded-t-[32px] sm:rounded-t-[48px]">
+        <div className="relative z-10 bg-[#FBF9F4] dark:bg-[#141311] transition-colors duration-300 shadow-[0_-20px_50px_rgba(0,0,0,0.05)] border-t border-[#E5E0D8] dark:border-[#262320] rounded-t-[32px] sm:rounded-t-[48px]">
           <QuoteSection />
           <ProductShowcase />
           <FeaturesSection />

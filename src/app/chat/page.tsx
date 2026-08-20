@@ -30,18 +30,53 @@ export default function ChatPage() {
  refreshChats,
  } = useChat();
 
- const [settingsOpen, setSettingsOpen] = useState(false);
- const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [sidebarWidth, setSidebarWidth] = useState(280);
+  const [isResizing, setIsResizing] = useState(false);
+  const [isMobile, setIsMobile] = useState(true);
 
- // Auto-create/select logic removed to ensure fresh 'New Chat' state on load
- // User will see Welcome screen until they select a chat or send a message
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
- // Redirect if not logged in
- useEffect(() => {
- if (!authLoading && !user) {
- router.push('/');
- }
- }, [user, authLoading, router]);
+  const startResizing = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setIsResizing(true);
+  };
+
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!isResizing) return;
+      const newWidth = Math.max(220, Math.min(480, e.clientX));
+      setSidebarWidth(newWidth);
+    };
+
+    const handleMouseUp = () => {
+      setIsResizing(false);
+    };
+
+    if (isResizing) {
+      window.addEventListener('mousemove', handleMouseMove);
+      window.addEventListener('mouseup', handleMouseUp);
+    }
+
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [isResizing]);
+
+  // Redirect if not logged in
+  useEffect(() => {
+    if (!authLoading && !user) {
+      router.push('/');
+    }
+  }, [user, authLoading, router]);
 
  const handleNewChat = async () => {
  await createNewChat();
@@ -101,14 +136,27 @@ export default function ChatPage() {
  )}
  </AnimatePresence>
 
- {/* Permanent Sidebar */}
- <aside
- className={clsx(
- 'flex fixed inset-y-0 left-0 z-40 w-72 flex-col bg-white/50 backdrop-blur-xl border-r border-neutral-200/30 transition-transform duration-300 ease-in-out md:translate-x-0 md:static',
- sidebarOpen ? 'translate-x-0' : '-translate-x-full'
- )}
- >
- {/* Sidebar Header */}
+  {/* Permanent / Collapsible Sidebar */}
+  <aside
+    style={!isMobile ? { width: sidebarCollapsed ? '0px' : `${sidebarWidth}px` } : undefined}
+    className={clsx(
+      'flex fixed inset-y-0 left-0 z-40 w-72 flex-col bg-white/50 backdrop-blur-xl border-r border-[#E5E0D8] transition-all duration-300 ease-in-out md:translate-x-0 md:static relative',
+      sidebarOpen ? 'translate-x-0' : '-translate-x-full',
+      sidebarCollapsed && 'md:w-0 overflow-hidden md:border-r-0'
+    )}
+  >
+    {/* Resize Handle (Desktop Only) */}
+    {!isMobile && !sidebarCollapsed && (
+      <div
+        onMouseDown={startResizing}
+        className={clsx(
+          "absolute top-0 right-0 bottom-0 w-1.5 cursor-col-resize hover:bg-primary/40 active:bg-primary/80 transition-colors z-50",
+          isResizing && "bg-primary"
+        )}
+      />
+    )}
+
+    {/* Sidebar Header */}
  <div className="flex items-center justify-center p-6">
  <Logo className="w-8 h-8 text-[rgb(var(--primary))]" />
  </div>
@@ -222,16 +270,23 @@ export default function ChatPage() {
  </div>
  </aside>
 
- {/* Main chat interface */}
- <main className="flex-1 flex flex-col min-w-0 relative z-10">
- <ChatInterface
- messages={messages}
- latestSummary={latestSummary?.content || null}
- onAddMessage={handleAddMessage}
- onUpdateMessage={handleUpdateMessage}
- onToggleSidebar={() => setSidebarOpen(true)}
- />
- </main>
- </div>
+  {/* Main chat interface */}
+  <main className="flex-1 flex flex-col min-w-0 relative z-10">
+    <ChatInterface
+      messages={messages}
+      latestSummary={latestSummary?.content || null}
+      onAddMessage={handleAddMessage}
+      onUpdateMessage={handleUpdateMessage}
+      onToggleSidebar={() => {
+        if (isMobile) {
+          setSidebarOpen(!sidebarOpen);
+        } else {
+          setSidebarCollapsed(!sidebarCollapsed);
+        }
+      }}
+      sidebarCollapsed={sidebarCollapsed}
+    />
+  </main>
+  </div>
  );
 }

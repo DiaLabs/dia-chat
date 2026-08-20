@@ -6,11 +6,18 @@ import { useAuth } from '@/context/AuthContext';
 import { Send, Lock, Plus, History, ArrowRight, ChevronDown } from 'lucide-react';
 import Logo from '@/components/Logo';
 
-export default function HeroSection({ startAnimation = true }: { startAnimation?: boolean }) {
+export default function HeroSection({ 
+  startAnimation = true,
+  onExpandedChange
+}: { 
+  startAnimation?: boolean;
+  onExpandedChange?: (expanded: boolean) => void;
+}) {
  const { signInWithGoogle } = useAuth();
  const [messages, setMessages] = useState<{ role: 'user' | 'dia'; content: string }[]>([]);
  const [inputValue, setInputValue] = useState('');
  const [isTyping, setIsTyping] = useState(false);
+ const [isPreviewActive, setIsPreviewActive] = useState(false);
  
  const [activeMenu, setActiveMenu] = useState<'plus' | 'history' | null>(null);
  const [highlightHovered, setHighlightHovered] = useState(false);
@@ -22,6 +29,13 @@ export default function HeroSection({ startAnimation = true }: { startAnimation?
  
  const MAX_MESSAGES = 2;
  const isLocked = messages.length >= MAX_MESSAGES;
+
+ // Notify parent of expanded state change
+ useEffect(() => {
+   if (onExpandedChange) {
+     onExpandedChange(isPreviewActive || messages.length > 0);
+   }
+ }, [isPreviewActive, messages, onExpandedChange]);
 
  // Handle click outside to close menus
  useEffect(() => {
@@ -102,7 +116,7 @@ export default function HeroSection({ startAnimation = true }: { startAnimation?
  };
 
  return (
- <section className="relative px-4 sm:px-6 lg:px-8 pt-32 sm:pt-44 pb-24 min-h-screen flex flex-col items-center justify-center border-b border-border overflow-hidden">
+ <section className="relative px-4 sm:px-6 lg:px-8 pt-32 sm:pt-44 pb-24 min-h-screen flex flex-col items-center justify-center border-b border-border dark:border-[#2C2924] overflow-hidden">
  {/* SVG Filters for Crumple Effect */}
  <svg className="absolute w-0 h-0">
  <filter id="paper-crumple">
@@ -115,13 +129,13 @@ export default function HeroSection({ startAnimation = true }: { startAnimation?
  </svg>
 
  {/* Dynamic Crumpled Paper Background */}
- <div className="absolute inset-0 pointer-events-none z-0 bg-[#FBF9F4]">
+ <div className="absolute inset-0 pointer-events-none z-0 bg-[#FBF9F4] dark:bg-[#121110] transition-colors duration-300">
  {/* Dense Grid overlay */}
- <div className="absolute inset-0 hero-bg opacity-[0.45] mix-blend-multiply" />
+ <div className="absolute inset-0 hero-bg opacity-[0.45] dark:opacity-[0.15] mix-blend-multiply dark:mix-blend-screen" />
  
  {/* SVG Crumple shadow texture overlay */}
  <div 
- className="absolute inset-0 opacity-[0.28] mix-blend-multiply "
+ className="absolute inset-0 opacity-[0.28] dark:opacity-[0.1] mix-blend-multiply "
  style={{
  filter: 'url(#paper-crumple)',
  background: '#fff'
@@ -129,13 +143,13 @@ export default function HeroSection({ startAnimation = true }: { startAnimation?
  />
  
  {/* Soft amber blur glow overlay */}
- <div className="absolute top-[40%] left-1/2 -translate-x-1/2 -translate-y-1/2 w-[75vw] h-[75vw] max-w-[600px] max-h-[600px] rounded-full bg-primary/6 blur-[140px] sm:blur-[160px]" />
+ <div className="absolute top-[60%] left-1/2 -translate-x-1/2 -translate-y-1/2 w-[110vw] h-[110vw] max-w-[1000px] max-h-[1000px] rounded-full bg-primary/12 dark:bg-primary/20 blur-[180px] sm:blur-[240px] pointer-events-none" />
  </div>
 
  <div className="relative z-10 w-full max-w-5xl mx-auto text-center flex flex-col justify-center items-center">
  {/* Headline */}
  <motion.h1 
- className="text-5xl sm:text-6xl md:text-7xl font-bold tracking-tight text-neutral-900 mb-4 sm:mb-6 max-w-4xl mx-auto leading-tight"
+ className="text-5xl sm:text-6xl md:text-7xl font-bold tracking-tight text-neutral-900 dark:text-[#F5F2EC] mb-4 sm:mb-6 max-w-4xl mx-auto leading-tight"
  initial={{ opacity: 0, y: 25 }}
  animate={startAnimation ? { opacity: 1, y: 0 } : { opacity: 0, y: 25 }}
  transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
@@ -146,7 +160,7 @@ export default function HeroSection({ startAnimation = true }: { startAnimation?
  onMouseEnter={() => setHighlightHovered(true)}
  onMouseLeave={() => setHighlightHovered(false)}
  >
- <span className="italic font-serif font-medium text-neutral-500 ">don't have to</span>
+ <span className="italic font-serif font-medium text-neutral-500 dark:text-neutral-400">don't have to</span>
  <svg 
  className={`absolute left-0 -bottom-1.5 w-full h-2 text-primary pointer-events-none transition-opacity duration-200 ${
  highlightHovered ? 'opacity-100' : 'opacity-0'
@@ -171,7 +185,7 @@ export default function HeroSection({ startAnimation = true }: { startAnimation?
  
  {/* Short, direct copy */}
  <motion.p 
- className="text-xl sm:text-2xl text-neutral-500 max-w-2xl mx-auto mb-6 sm:mb-10 leading-relaxed font-medium"
+ className="text-xl sm:text-2xl text-neutral-500 dark:text-neutral-400 max-w-2xl mx-auto mb-6 sm:mb-10 leading-relaxed font-medium"
  initial={{ opacity: 0, y: 15 }}
  animate={startAnimation ? { opacity: 1, y: 0 } : { opacity: 0, y: 15 }}
  transition={{ duration: 0.8, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
@@ -195,14 +209,17 @@ export default function HeroSection({ startAnimation = true }: { startAnimation?
  </button>
  
  <button
- onClick={() => {
- inputRef.current?.focus();
- inputRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
- }}
- className="w-1/2 sm:w-auto px-4 sm:px-8 py-2.5 sm:py-3.5 rounded-full border border-border bg-surface hover:bg-surface-secondary text-neutral-700 font-semibold transition-colors text-sm sm:text-base whitespace-nowrap"
- >
- Try preview
- </button>
+  onClick={() => {
+  setIsPreviewActive(true);
+  setTimeout(() => {
+    inputRef.current?.focus();
+    inputRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }, 100);
+  }}
+  className="w-1/2 sm:w-auto px-4 sm:px-8 py-2.5 sm:py-3.5 rounded-full border border-border dark:border-[#332F28] bg-surface dark:bg-[#1A1916] hover:bg-surface-secondary dark:hover:bg-[#25221D] text-neutral-700 dark:text-neutral-200 font-semibold transition-colors text-sm sm:text-base whitespace-nowrap"
+  >
+  Try preview
+  </button>
  </motion.div>
 
  {/* Dynamic Chat & Input Container (Takes 70-75% screen width on desktop) */}
@@ -220,7 +237,7 @@ export default function HeroSection({ startAnimation = true }: { startAnimation?
  initial={{ opacity: 0, height: 0 }}
  animate={{ opacity: 1, height: 'auto' }}
  exit={{ opacity: 0, height: 0 }}
- className="mb-6 rounded-2xl border border-border bg-surface/50 p-4 sm:p-6 max-h-[250px] overflow-y-auto space-y-4 custom-scrollbar"
+ className="mb-6 rounded-2xl border border-border dark:border-[#332F28] bg-surface/50 dark:bg-[#1A1916]/80 p-4 sm:p-6 max-h-[250px] overflow-y-auto space-y-4 custom-scrollbar"
  >
  {messages.map((msg, i) => (
  <motion.div 
@@ -231,8 +248,8 @@ export default function HeroSection({ startAnimation = true }: { startAnimation?
  >
  <div className={`max-w-[85%] sm:max-w-[75%] rounded-xl px-4 py-2.5 text-sm sm:text-base border ${
  msg.role === 'user' 
- ? 'bg-primary/10 border-primary/20 text-neutral-900 ' 
- : 'bg-surface-secondary border-border text-neutral-800 '
+ ? 'bg-primary/10 border-primary/20 text-neutral-900 dark:text-white' 
+ : 'bg-surface-secondary dark:bg-[#25221D] border-border dark:border-[#332F28] text-neutral-800 dark:text-neutral-200'
  }`}>
  {msg.content}
  </div>
@@ -252,42 +269,42 @@ export default function HeroSection({ startAnimation = true }: { startAnimation?
  )}
  </AnimatePresence>
 
- {/* Interactive Input Box (Mindela-inspired: simple, big, controls at bottom) */}
- <div className="relative rounded-2xl bg-surface/60 border border-border p-3 sm:p-4 shadow-md transition-all duration-300 group focus-within:border-primary/50">
- {isLocked ? (
- <motion.div 
- initial={{ opacity: 0 }}
- animate={{ opacity: 1 }}
- className="flex flex-col items-center justify-center py-6 text-center"
- >
- <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-3">
- <Lock className="w-6 h-6 text-primary" />
- </div>
- <h3 className="text-lg font-medium text-neutral-900 mb-2">
- Continue chatting with Dia
- </h3>
- <p className="text-sm text-neutral-500 mb-6">
- Sign in to save your conversation and access full features.
- </p>
- <button
- onClick={signInWithGoogle}
- className="px-6 py-2.5 rounded-full bg-primary hover:bg-primary-hover text-neutral-900 font-semibold transition-colors shadow-sm"
- >
- Sign in with Google
- </button>
- </motion.div>
- ) : (
- <>
- <input
- ref={inputRef}
- type="text"
- value={inputValue}
- onChange={(e) => setInputValue(e.target.value)}
- onKeyDown={handleKeyDown}
- disabled={isTyping}
- placeholder="What's on your mind?..."
- className="w-full bg-transparent border-none text-neutral-950 placeholder:text-neutral-400 focus:ring-0 text-base sm:text-lg py-2 px-3 mb-3 outline-none"
- />
+  {/* Interactive Input Box */}
+  <div className="relative rounded-2xl bg-surface/60 dark:bg-[#1A1916]/90 border border-border dark:border-[#332F28] p-3 sm:p-4 shadow-md transition-all duration-300 group focus-within:border-primary/50">
+  {isLocked ? (
+  <motion.div 
+  initial={{ opacity: 0 }}
+  animate={{ opacity: 1 }}
+  className="flex flex-col items-center justify-center py-6 text-center"
+  >
+  <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-3">
+  <Lock className="w-6 h-6 text-primary" />
+  </div>
+  <h3 className="text-lg font-medium text-neutral-900 dark:text-white mb-2">
+  Continue chatting with Dia
+  </h3>
+  <p className="text-sm text-neutral-500 dark:text-neutral-400 mb-6">
+  Sign in to save your conversation and access full features.
+  </p>
+  <button
+  onClick={signInWithGoogle}
+  className="px-6 py-2.5 rounded-full bg-primary hover:bg-primary-hover text-neutral-900 font-semibold transition-colors shadow-sm"
+  >
+  Sign in with Google
+  </button>
+  </motion.div>
+  ) : (
+  <>
+  <input
+  ref={inputRef}
+  type="text"
+  value={inputValue}
+  onChange={(e) => setInputValue(e.target.value)}
+  onKeyDown={handleKeyDown}
+  placeholder="Type a message to start..."
+  disabled={isTyping}
+  className="w-full bg-transparent border-none text-neutral-900 dark:text-white placeholder:text-neutral-400 dark:placeholder:text-neutral-500 text-sm sm:text-base font-medium focus:outline-none focus:ring-0 pr-12"
+  />
  
  {/* Actions bottom row (Uniform button sizes) */}
  <div className="flex items-center justify-between border-t border-border/60 pt-3 px-1.5 relative">

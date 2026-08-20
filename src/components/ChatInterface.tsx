@@ -17,6 +17,7 @@ interface ChatInterfaceProps {
  onAddMessage: (role: 'user' | 'assistant', content: string) => Promise<Message>;
  onUpdateMessage: (messageId: string, content: string) => Promise<void>;
  onToggleSidebar: () => void;
+ sidebarCollapsed?: boolean;
 }
 
 export default function ChatInterface({
@@ -25,6 +26,7 @@ export default function ChatInterface({
  onAddMessage,
  onUpdateMessage,
  onToggleSidebar,
+ sidebarCollapsed = false,
 }: ChatInterfaceProps) {
  const { user } = useAuth();
  const {
@@ -186,33 +188,41 @@ export default function ChatInterface({
  {/* Floating Header - pill shaped */}
  <div className="absolute top-4 left-4 right-4 z-20">
  <div className="max-w-5xl mx-auto flex items-center justify-between gap-3 px-4 sm:px-5 py-3 rounded-full bg-white/80 backdrop-blur-md border border-neutral-200/50 shadow-lg relative">
- {/* Left Section */}
- <div className="flex items-center gap-3">
- {/* Mobile Menu */}
- <button
- onClick={onToggleSidebar}
- className="md:hidden p-1.5 -ml-1 text-neutral-500 hover:text-neutral-900 rounded-full hover:bg-neutral-100 transition-colors cursor-pointer"
- aria-label="Open sidebar"
- >
- <MenuIcon className="w-5 h-5" />
- </button>
-
- {/* Desktop Header Content: Logo + Title + Version */}
- <div className="hidden md:flex items-center gap-4">
- <div className="flex items-center gap-2">
- <Logo className="w-6 h-6 text-[rgb(var(--primary))]" />
- <span className="text-lg font-bold text-neutral-900 ">
- Dia Chat
- </span>
-
- {/* Version Badge - Desktop */}
- <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-green-500/10 border border-green-500/20 text-xs font-medium text-green-700 ml-1">
- <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" />
- <span>v{process.env.NEXT_PUBLIC_APP_VERSION || '0.1.0'}</span>
- </div>
- </div>
- </div>
- </div>
+  {/* Left Section */}
+  <div className="flex items-center gap-3">
+  {/* Menu toggle button for both mobile overlay and desktop collapsing */}
+  <button
+  onClick={onToggleSidebar}
+  className="p-1.5 -ml-1 text-neutral-500 hover:text-neutral-900 rounded-full hover:bg-neutral-100 transition-colors cursor-pointer"
+  aria-label={sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+  >
+  <MenuIcon className="w-5 h-5" />
+  </button>
+ 
+  {/* Desktop Header Content: Logo + Title + Version */}
+  <div className="hidden md:flex items-center gap-4">
+  <div className="flex items-center gap-2">
+  {!sidebarCollapsed ? (
+    <>
+      <Logo className="w-6 h-6 text-[rgb(var(--primary))]" />
+      <span className="text-lg font-bold text-neutral-900 ">
+      Dia Chat
+      </span>
+    </>
+  ) : (
+    <span className="text-lg font-bold text-neutral-900 ">
+    Dia Chat
+    </span>
+  )}
+ 
+  {/* Version Badge - Desktop */}
+  <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-green-500/10 border border-green-500/20 text-xs font-medium text-green-700 ml-1">
+  <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" />
+  <span>v{process.env.NEXT_PUBLIC_APP_VERSION || '0.1.0'}</span>
+  </div>
+  </div>
+  </div>
+  </div>
 
  {/* Mobile Center: Logo + Title + Version */}
  <div className="md:hidden absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center gap-2 pointer-events-none">

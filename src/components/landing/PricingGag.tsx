@@ -15,7 +15,7 @@ export default function PricingGag() {
   const { signInWithGoogle } = useAuth();
 
   return (
-    <section id="pricing" className="relative px-4 sm:px-6 lg:px-8 py-24 sm:py-32 bg-[#F0A955] overflow-hidden border-b border-[#e09844]">
+    <section id="pricing" className="relative z-20 px-4 sm:px-6 lg:px-8 py-24 sm:py-32 bg-[#F0A955] dark:bg-[#B8701E] overflow-hidden border-b border-[#e09844] dark:border-[#985814] min-h-screen flex flex-col justify-center transition-colors duration-300">
       {/* Subtle dot grid */}
       <div
         className="absolute inset-0 opacity-[0.07]"
@@ -34,13 +34,13 @@ export default function PricingGag() {
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
         >
-          <span className="inline-block text-xs font-bold uppercase tracking-[0.25em] text-neutral-900/60 mb-4">
+          <span className="inline-block text-xs font-bold uppercase tracking-[0.25em] text-neutral-900/60 dark:text-neutral-900/80 mb-4">
             Pricing
           </span>
-          <h2 className="text-4xl sm:text-5xl font-bold text-neutral-900 mb-3">
+          <h2 className="text-4xl sm:text-5xl font-bold text-neutral-900 dark:text-neutral-950 mb-3">
             We tried to charge you.
           </h2>
-          <p className="text-lg sm:text-xl text-neutral-800/70 max-w-xl mx-auto">
+          <p className="text-lg sm:text-xl text-neutral-800/70 dark:text-neutral-900/80 max-w-xl mx-auto font-medium">
             We really did. Spent three days building a paywall. Then remembered we liked you.
           </p>
         </motion.div>
@@ -50,17 +50,17 @@ export default function PricingGag() {
           
           {/* Price card */}
           <motion.div
-            className="flex-1 bg-[#FBF9F4] rounded-3xl p-8 sm:p-10 flex flex-col items-center justify-center text-center border border-[#e09844]/40 shadow-xl"
+            className="flex-1 bg-[#FBF9F4] dark:bg-[#1A1916] rounded-3xl p-8 sm:p-10 flex flex-col items-center justify-center text-center border border-[#e09844]/40 dark:border-[#383128] shadow-xl"
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6, delay: 0.15 }}
           >
-            <p className="text-sm font-semibold text-neutral-500 uppercase tracking-widest mb-4">Every single plan</p>
+            <p className="text-sm font-semibold text-neutral-500 dark:text-neutral-400 uppercase tracking-widest mb-4">Every single plan</p>
             <div className="flex items-baseline justify-center gap-1 mb-2">
-              <span className="text-8xl font-bold text-neutral-900 leading-none">$0</span>
+              <span className="text-6xl sm:text-7xl font-bold text-neutral-900 dark:text-white">$0</span>
             </div>
-            <p className="text-neutral-500 text-lg font-medium mb-6">/ forever</p>
+            <p className="text-neutral-500 dark:text-neutral-400 text-sm font-medium mb-8">/ forever</p>
             <button
               onClick={signInWithGoogle}
               className="group inline-flex items-center gap-2 px-7 py-3 rounded-full bg-primary hover:bg-primary-hover text-neutral-900 font-bold text-base transition-all hover:scale-105 shadow-sm border border-primary/20"
