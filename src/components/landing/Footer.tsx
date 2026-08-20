@@ -10,6 +10,22 @@ export default function Footer() {
   const { resolvedTheme, setTheme } = useTheme();
   const isDark = resolvedTheme === 'dark';
 
+  const handleNavClick = (e: React.MouseEvent, href: string) => {
+    if (href.startsWith('#')) {
+      e.preventDefault();
+      const targetId = href.replace('#', '');
+      const element = document.getElementById(targetId);
+      if (element) {
+        const elementTop = element.getBoundingClientRect().top + window.pageYOffset;
+        window.scrollTo({
+          top: elementTop - 10,
+          behavior: 'smooth'
+        });
+        window.history.pushState(null, '', href);
+      }
+    }
+  };
+
   return (
     <footer className="border-t border-[#E5E0D8] dark:border-[#262320] bg-[#FBF9F4] dark:bg-[#100F0E] relative z-20 py-14 sm:py-20 overflow-hidden transition-colors duration-300">
 
@@ -72,9 +88,9 @@ export default function Footer() {
             <div className="space-y-3">
               <h4 className="text-xs font-bold text-neutral-400 dark:text-neutral-500 uppercase tracking-widest">Product</h4>
               <ul className="space-y-2 text-sm text-neutral-600 dark:text-neutral-400">
-                <li><Link href="#demo" className="hover:text-primary transition-colors">What is Dia</Link></li>
-                <li><Link href="#demo" className="hover:text-primary transition-colors">How it works</Link></li>
-                <li><Link href="#features" className="hover:text-primary transition-colors">Features</Link></li>
+                <li><Link href="#demo" onClick={(e) => handleNavClick(e, '#demo')} className="hover:text-primary transition-colors">What is Dia</Link></li>
+                <li><Link href="#demo" onClick={(e) => handleNavClick(e, '#demo')} className="hover:text-primary transition-colors">How it works</Link></li>
+                <li><Link href="#features" onClick={(e) => handleNavClick(e, '#features')} className="hover:text-primary transition-colors">Features</Link></li>
                 <li><a href="/chat" className="hover:text-primary transition-colors">Launch App</a></li>
               </ul>
             </div>

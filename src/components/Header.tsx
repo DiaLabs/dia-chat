@@ -56,6 +56,22 @@ function HoverNavLink({ name, href, external }: NavLink) {
         </span>
     );
 
+    const handleClick = (e: React.MouseEvent) => {
+        if (href.startsWith('#')) {
+            e.preventDefault();
+            const targetId = href.replace('#', '');
+            const element = document.getElementById(targetId);
+            if (element) {
+                const elementTop = element.getBoundingClientRect().top + window.pageYOffset;
+                window.scrollTo({
+                    top: elementTop - 10,
+                    behavior: 'smooth'
+                });
+                window.history.pushState(null, '', href);
+            }
+        }
+    };
+
     if (external) {
         return (
             <a
@@ -74,6 +90,7 @@ function HoverNavLink({ name, href, external }: NavLink) {
     return (
         <Link
             href={href}
+            onClick={handleClick}
             onMouseEnter={() => setHovered(true)}
             onMouseLeave={() => setHovered(false)}
             className="text-sm font-medium text-neutral-600 dark:text-neutral-300 hover:text-neutral-900 dark:hover:text-white transition-colors"
