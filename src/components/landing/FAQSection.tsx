@@ -78,7 +78,7 @@ export default function FAQSection() {
   const visibleFaqs = expanded ? allFaqs : allFaqs.slice(0, 3);
 
   return (
-    <section className="relative z-20 py-24 sm:py-32 bg-[#FBF9F4] dark:bg-[#141311] border-b border-[#E5E0D8] dark:border-[#262320] min-h-screen flex flex-col justify-center transition-colors duration-300">
+    <section className="relative z-20 py-16 sm:py-32 bg-[#FBF9F4] dark:bg-[#141311] border-b border-[#E5E0D8] dark:border-[#262320] min-h-fit md:min-h-screen flex flex-col justify-center transition-colors duration-300 transform-gpu">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Section Header */}

@@ -133,9 +133,9 @@ export default function HeroSection({
  {/* Dense Grid overlay */}
  <div className="absolute inset-0 hero-bg opacity-[0.45] dark:opacity-[0.15] mix-blend-multiply dark:mix-blend-screen" />
  
- {/* SVG Crumple shadow texture overlay */}
+ {/* SVG Crumple shadow texture overlay — disabled on mobile for 60fps scroll */}
  <div 
- className="absolute inset-0 opacity-[0.28] dark:opacity-[0.1] mix-blend-multiply "
+ className="hidden md:block absolute inset-0 opacity-[0.28] dark:opacity-[0.1] mix-blend-multiply"
  style={{
  filter: 'url(#paper-crumple)',
  background: '#fff'
@@ -143,7 +143,7 @@ export default function HeroSection({
  />
  
  {/* Soft amber blur glow overlay */}
- <div className="absolute top-[60%] left-1/2 -translate-x-1/2 -translate-y-1/2 w-[110vw] h-[110vw] max-w-[1000px] max-h-[1000px] rounded-full bg-primary/12 dark:bg-primary/20 blur-[180px] sm:blur-[240px] pointer-events-none" />
+ <div className="absolute top-[60%] left-1/2 -translate-x-1/2 -translate-y-1/2 w-[100vw] sm:w-[110vw] h-[100vw] sm:h-[110vw] max-w-[1000px] max-h-[1000px] rounded-full bg-primary/12 dark:bg-primary/20 blur-[60px] sm:blur-[220px] pointer-events-none transform-gpu" />
  </div>
 
  <div className="relative z-10 w-full max-w-5xl mx-auto text-center flex flex-col justify-center items-center">

@@ -17,23 +17,18 @@ function getSystemTheme(): 'light' | 'dark' {
 }
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  const [theme, setThemeState] = useState<Theme>('system');
+  const [theme, setThemeState] = useState<Theme>('light');
   const [resolvedTheme, setResolvedTheme] = useState<'light' | 'dark'>('light');
   const [mounted, setMounted] = useState(false);
 
   // Initial mount - load saved theme and apply immediately
   useEffect(() => {
     const saved = localStorage.getItem('dia-theme') as Theme | null;
-    const initialTheme = saved || 'system';
+    const initialTheme = saved || 'light';
     setThemeState(initialTheme);
     
     // Immediately resolve and apply theme
-    let resolved: 'light' | 'dark';
-    if (initialTheme === 'system') {
-      resolved = getSystemTheme();
-    } else {
-      resolved = initialTheme;
-    }
+    let resolved: 'light' | 'dark' = initialTheme === 'system' ? 'light' : initialTheme;
     setResolvedTheme(resolved);
     
     // Apply to document immediately

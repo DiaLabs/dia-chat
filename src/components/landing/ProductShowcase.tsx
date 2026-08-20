@@ -24,13 +24,7 @@ export default function ProductShowcase() {
   const [isLimitReached, setIsLimitReached] = useState(false);
   const endOfMessagesRef = useRef<HTMLDivElement>(null);
 
-  const scrollToBottom = () => {
-    endOfMessagesRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
 
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages, isLoading]);
 
   const handleSend = (textToSend: string, moodId?: string) => {
     if (!textToSend.trim() || isLoading || isLimitReached) return;
@@ -172,7 +166,7 @@ export default function ProductShowcase() {
   );
 
   return (
-    <section id="demo" className="sticky top-0 z-10 w-full px-4 sm:px-6 lg:px-8 py-24 sm:py-32 bg-[#FBF9F4] dark:bg-[#161513] transition-colors duration-300 overflow-hidden min-h-screen flex flex-col justify-center">
+    <section id="demo" className="relative md:sticky md:top-0 z-10 w-full px-4 sm:px-6 lg:px-8 py-16 sm:py-32 bg-[#FBF9F4] dark:bg-[#161513] transition-colors duration-300 overflow-hidden min-h-fit md:min-h-screen flex flex-col justify-center transform-gpu">
       <div className="max-w-5xl mx-auto relative w-full">
         
         {/* Section Header */}

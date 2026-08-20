@@ -127,12 +127,12 @@ export default function FeaturesSection() {
   return (
     <section 
       id="features" 
-      className="relative z-20 -mt-10 sm:-mt-16 px-4 sm:px-6 lg:px-8 py-24 sm:py-32 bg-[#F3EEE6] dark:bg-[#181714] border-t border-b border-[#E0D8CC] dark:border-[#2C2924] shadow-[0_-25px_60px_rgba(0,0,0,0.06)] rounded-t-[32px] sm:rounded-t-[48px] overflow-hidden min-h-screen flex flex-col justify-center transition-colors duration-300"
+      className="relative z-20 -mt-10 sm:-mt-16 px-4 sm:px-6 lg:px-8 py-16 sm:py-32 bg-[#F3EEE6] dark:bg-[#181714] border-t border-b border-[#E0D8CC] dark:border-[#2C2924] shadow-[0_-25px_60px_rgba(0,0,0,0.06)] rounded-t-[32px] sm:rounded-t-[48px] overflow-hidden min-h-fit md:min-h-screen flex flex-col justify-center transition-colors duration-300 transform-gpu"
     >
       <div className="max-w-4xl mx-auto relative z-10">
         
         {/* Section Header with standard hierarchy */}
-        <div className="text-center mb-16 sm:mb-20">
+        <div className="text-center mb-12 sm:mb-20">
           <h2 className="text-3xl sm:text-4xl font-bold text-neutral-900 dark:text-[#F5F2EC] mb-4">
             A different kind of <span className="italic font-serif font-medium text-neutral-500 dark:text-neutral-400">AI companion</span>
           </h2>
@@ -142,13 +142,13 @@ export default function FeaturesSection() {
         </div>
 
         {/* Stacked Native Sticky Cards */}
-        <div className="relative space-y-14 pb-12">
+        <div className="relative space-y-10 sm:space-y-14 pb-8 sm:pb-12">
           {features.map((feature, index) => {
             const Icon = feature.IconComponent;
             return (
               <div
                 key={index}
-                className={`sticky ${feature.stickyTop} z-${(index + 1) * 10} transition-transform duration-200 pt-5`}
+                className={`relative md:sticky ${feature.stickyTop} z-${(index + 1) * 10} transition-transform duration-200 pt-5 transform-gpu`}
                 style={{
                   transform: `rotate(${feature.rotation})`,
                 }}
