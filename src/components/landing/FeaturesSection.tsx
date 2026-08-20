@@ -1,52 +1,127 @@
 'use client';
 
-// Custom Hand-drawn SVG doodle icons with organic sketch lines
-const HandDrawnHeart = ({ color }: { color: string }) => (
+import { motion } from 'framer-motion';
+import { Heart, MessageCircle, Lock, LucideIcon } from 'lucide-react';
+
+interface IconProps {
+  color: string;
+}
+
+// Custom Hand-drawn SVG doodle icons with organic sketch lines and drawing animations
+const HandDrawnHeart = ({ color }: IconProps) => (
   <svg className="w-full h-full" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path
+    {/* Inner Scribble Fill */}
+    <motion.path
+      d="M30 35 Q40 28 50 35 Q60 28 70 35 Q65 48 50 62 Q35 48 30 35 Z M35 40 Q50 35 65 40 Q58 48 50 55 Q42 48 35 40 Z"
+      stroke={color}
+      strokeWidth="6"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      opacity="0.18"
+      initial={{ pathLength: 0, opacity: 0 }}
+      whileInView={{ pathLength: 1, opacity: 0.18 }}
+      viewport={{ once: true, margin: "-80px" }}
+      transition={{ duration: 1.4, delay: 0.5, ease: "easeInOut" }}
+    />
+    {/* Primary Outline */}
+    <motion.path
       d="M50 82 C25 65, 10 45, 12 30 C14 15, 30 12, 42 22 C47 26, 50 30, 50 30 C50 30, 53 26, 58 22 C70 12, 86 15, 88 30 C90 45, 75 65, 50 82 Z"
       stroke={color}
       strokeWidth="3.5"
       strokeLinecap="round"
       strokeLinejoin="round"
-      className="opacity-90"
+      initial={{ pathLength: 0 }}
+      whileInView={{ pathLength: 1 }}
+      viewport={{ once: true, margin: "-80px" }}
+      transition={{ duration: 1.2, ease: "easeOut" }}
     />
-    <path
+    {/* Secondary Imperfect Sketchy Outline Offset */}
+    <motion.path
       d="M51 80 C27 63, 13 46, 15 32 C17 18, 31 14, 43 23 C48 27, 50 30, 50 30 C50 30, 52 27, 57 23 C68 14, 84 17, 86 32 C88 46, 73 63, 51 80 Z"
       stroke={color}
-      strokeWidth="2"
+      strokeWidth="1.5"
       strokeLinecap="round"
       strokeLinejoin="round"
-      className="opacity-60"
+      opacity="0.5"
+      initial={{ pathLength: 0 }}
+      whileInView={{ pathLength: 0.95 }}
+      viewport={{ once: true, margin: "-80px" }}
+      transition={{ duration: 1.4, delay: 0.1, ease: "easeOut" }}
     />
-    <circle cx="28" cy="30" r="2.5" fill={color} className="opacity-70" />
   </svg>
 );
 
-const HandDrawnChat = ({ color }: { color: string }) => (
+const HandDrawnChat = ({ color }: IconProps) => (
   <svg className="w-full h-full" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path
+    {/* Inner Scribble Fill */}
+    <motion.path
+      d="M28 45 Q38 38 52 38 Q66 38 72 45 Q70 54 60 58 Q48 58 38 56 Q30 52 28 45 Z"
+      stroke={color}
+      strokeWidth="6"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      opacity="0.18"
+      initial={{ pathLength: 0, opacity: 0 }}
+      whileInView={{ pathLength: 1, opacity: 0.18 }}
+      viewport={{ once: true, margin: "-80px" }}
+      transition={{ duration: 1.4, delay: 0.5, ease: "easeInOut" }}
+    />
+    {/* Primary Outline */}
+    <motion.path
       d="M18 45 C15 25, 35 15, 52 16 C70 17, 86 28, 84 48 C82 66, 64 74, 46 72 C38 71, 30 76, 22 81 C25 73, 23 66, 19 60 C15 55, 18 48, 18 45 Z"
       stroke={color}
       strokeWidth="3.5"
       strokeLinecap="round"
       strokeLinejoin="round"
+      initial={{ pathLength: 0 }}
+      whileInView={{ pathLength: 1 }}
+      viewport={{ once: true, margin: "-80px" }}
+      transition={{ duration: 1.2, ease: "easeOut" }}
     />
-    <path
+    {/* Secondary Imperfect Sketchy Outline Offset */}
+    <motion.path
       d="M20 46 C17 27, 36 17, 53 18 C71 19, 84 30, 82 49 C80 65, 63 72, 47 71 C39 70, 31 75, 23 80 C26 73, 24 67, 20 60 Z"
       stroke={color}
-      strokeWidth="2"
+      strokeWidth="1.5"
       strokeLinecap="round"
       strokeLinejoin="round"
-      className="opacity-50"
+      opacity="0.5"
+      initial={{ pathLength: 0 }}
+      whileInView={{ pathLength: 0.95 }}
+      viewport={{ once: true, margin: "-80px" }}
+      transition={{ duration: 1.4, delay: 0.1, ease: "easeOut" }}
     />
-    <path d="M36 46 H44 M52 46 H64" stroke={color} strokeWidth="3" strokeLinecap="round" opacity="0.8" />
+    <motion.path 
+      d="M36 46 H44 M52 46 H64" 
+      stroke={color} 
+      strokeWidth="3" 
+      strokeLinecap="round" 
+      opacity="0.8" 
+      initial={{ pathLength: 0 }}
+      whileInView={{ pathLength: 1 }}
+      viewport={{ once: true }}
+      transition={{ duration: 0.8, delay: 0.6 }}
+    />
   </svg>
 );
 
-const HandDrawnLock = ({ color }: { color: string }) => (
+const HandDrawnLock = ({ color }: IconProps) => (
   <svg className="w-full h-full" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <rect
+    {/* Inner Scribble Fill */}
+    <motion.path
+      d="M32 50 Q50 47 68 50 Q66 65 68 78 Q50 81 32 78 Q34 65 32 50 Z"
+      stroke={color}
+      strokeWidth="6"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      opacity="0.18"
+      initial={{ pathLength: 0, opacity: 0 }}
+      whileInView={{ pathLength: 1, opacity: 0.18 }}
+      viewport={{ once: true, margin: "-80px" }}
+      transition={{ duration: 1.4, delay: 0.5, ease: "easeInOut" }}
+    />
+    {/* Lock Body */}
+    <motion.rect
       x="22"
       y="42"
       width="56"
@@ -56,34 +131,70 @@ const HandDrawnLock = ({ color }: { color: string }) => (
       strokeWidth="3.5"
       strokeLinecap="round"
       strokeLinejoin="round"
+      initial={{ pathLength: 0 }}
+      whileInView={{ pathLength: 1 }}
+      viewport={{ once: true, margin: "-80px" }}
+      transition={{ duration: 1.1, ease: "easeOut" }}
     />
-    <rect
+    <motion.rect
       x="24"
       y="44"
       width="52"
       height="40"
       rx="6"
       stroke={color}
-      strokeWidth="2"
+      strokeWidth="1.5"
       strokeLinecap="round"
       strokeLinejoin="round"
-      className="opacity-50"
+      opacity="0.5"
+      initial={{ pathLength: 0 }}
+      whileInView={{ pathLength: 0.95 }}
+      viewport={{ once: true, margin: "-80px" }}
+      transition={{ duration: 1.3, delay: 0.1, ease: "easeOut" }}
     />
-    <path
+    {/* Lock Shackle */}
+    <motion.path
       d="M34 42 V28 C34 18, 42 14, 50 14 C58 14, 66 18, 66 28 V42"
       stroke={color}
       strokeWidth="3.5"
       strokeLinecap="round"
+      initial={{ pathLength: 0 }}
+      whileInView={{ pathLength: 1 }}
+      viewport={{ once: true, margin: "-80px" }}
+      transition={{ duration: 1.3, delay: 0.2, ease: "easeOut" }}
     />
-    <path
+    <motion.path
       d="M36 42 V29 C36 20, 43 16, 50 16 C57 16, 64 20, 64 29 V42"
       stroke={color}
-      strokeWidth="2"
+      strokeWidth="1.5"
       strokeLinecap="round"
-      className="opacity-60"
+      opacity="0.5"
+      initial={{ pathLength: 0 }}
+      whileInView={{ pathLength: 0.95 }}
+      viewport={{ once: true, margin: "-80px" }}
+      transition={{ duration: 1.4, delay: 0.3, ease: "easeOut" }}
     />
-    <circle cx="50" cy="58" r="4" fill={color} />
-    <path d="M50 62 V70" stroke={color} strokeWidth="3" strokeLinecap="round" />
+    {/* Keyhole */}
+    <motion.circle 
+      cx="50" 
+      cy="58" 
+      r="4" 
+      fill={color} 
+      initial={{ opacity: 0, scale: 0 }}
+      whileInView={{ opacity: 1, scale: 1 }}
+      viewport={{ once: true }}
+      transition={{ duration: 0.5, delay: 0.7 }}
+    />
+    <motion.path 
+      d="M50 62 V70" 
+      stroke={color} 
+      strokeWidth="3" 
+      strokeLinecap="round" 
+      initial={{ pathLength: 0 }}
+      whileInView={{ pathLength: 1 }}
+      viewport={{ once: true }}
+      transition={{ duration: 0.6, delay: 0.8 }}
+    />
   </svg>
 );
 
@@ -131,7 +242,7 @@ export default function FeaturesSection() {
     >
       <div className="max-w-4xl mx-auto relative z-10">
         
-        {/* Section Header with standard hierarchy */}
+        {/* Section Header */}
         <div className="text-center mb-12 sm:mb-20">
           <h2 className="text-3xl sm:text-4xl font-bold text-neutral-900 dark:text-[#F5F2EC] mb-4">
             A different kind of <span className="italic font-serif font-medium text-neutral-500 dark:text-neutral-400">AI companion</span>
@@ -163,52 +274,37 @@ export default function FeaturesSection() {
                       : 'left-1/2 -translate-x-1/2 -rotate-1'
                   } w-32 h-8 bg-[#F5DC9C]/90 dark:bg-[#7A6230]/80 border-t border-b border-[#E0C37B]/70 dark:border-[#967B40]/60 shadow-xs pointer-events-none z-30`}
                   style={{
-                    clipPath: 'polygon(3% 0%, 97% 0%, 100% 20%, 96% 40%, 100% 60%, 96% 80%, 100% 100%, 0% 100%, 4% 80%, 0% 60%, 4% 40%, 0% 20%)'
+                    clipPath: 'polygon(0% 0%, 5% 100%, 95% 100%, 100% 0%, 97% 50%, 3% 50%)',
                   }}
                 />
 
-                {/* Journal Paper Slip */}
-                <div className="relative w-full bg-[#FFFDF8] dark:bg-[#22201C] border border-[#E5E0D8] dark:border-[#38342E] p-6 sm:p-10 md:p-12 shadow-[0_12px_32px_-5px_rgba(0,0,0,0.07)] dark:shadow-[0_12px_32px_-5px_rgba(0,0,0,0.5)] rounded-sm overflow-hidden">
+                {/* Notebook Sheet Card */}
+                <div className="relative bg-[#FFFDF8] dark:bg-[#22201C] rounded-2xl border border-[#E0D8CC] dark:border-[#2C2924] shadow-md p-6 sm:p-10 flex flex-col md:flex-row items-center gap-8 md:gap-12 transition-colors duration-300">
                   
-                  {/* Paper grain texture */}
-                  <div 
-                    className="absolute inset-0 pointer-events-none opacity-[0.03] mix-blend-multiply"
-                    style={{
-                      backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`,
-                    }}
-                  />
+                  {/* Left Column: Sketch Doodles */}
+                  <div className="w-24 h-24 sm:w-28 sm:h-28 shrink-0 flex items-center justify-center relative">
+                    <Icon color={feature.color} />
+                  </div>
 
-                  {/* Visible Ruled Blue Notebook Lines */}
-                  <div 
-                    className="absolute inset-0 pointer-events-none opacity-[0.55] dark:opacity-[0.25]"
-                    style={{
-                      backgroundImage: 'linear-gradient(transparent 31px, #CBD5E1 32px)',
-                      backgroundSize: '100% 32px',
-                    }}
-                  />
-
-                  {/* Red Double Vertical Margin Line */}
-                  <div className="absolute left-8 sm:left-16 top-0 bottom-0 w-0.5 bg-red-400/60 dark:bg-red-500/40 pointer-events-none" />
-
-                  {/* Soft Fold Shadow Gradient */}
-                  <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-amber-900/5 via-transparent to-transparent pointer-events-none" />
-
-                  {/* Inner Content Layout */}
-                  <div className="relative z-10 flex flex-col sm:flex-row items-center sm:items-start gap-6 sm:gap-10 pl-4 sm:pl-12">
-                    {/* Larger Hand-drawn Icon */}
-                    <div className="shrink-0 flex items-center justify-center w-20 h-20 sm:w-28 sm:h-28 pt-1">
-                      <Icon color={feature.color} />
+                  {/* Right Column: Ruled Line Journal Content */}
+                  <div className="flex-1 space-y-4 relative pl-4 sm:pl-8 border-l border-red-200/60 dark:border-red-950/40">
+                    <div className="text-[11px] font-mono tracking-widest text-[#B2A895] dark:text-[#7A7263] uppercase">
+                      {feature.tag}
                     </div>
-
-                    {/* Text Details */}
-                    <div className="text-center sm:text-left flex-1">
-                      <span className="inline-block text-[11px] font-mono font-bold tracking-[0.2em] text-neutral-400 dark:text-neutral-500 uppercase mb-1.5 bg-[#FFFDF8]/80 dark:bg-[#22201C]/80 px-1 rounded-xs">
-                        {feature.tag}
-                      </span>
-                      <h3 className="text-2xl sm:text-3xl font-bold text-neutral-900 dark:text-[#F5F2EC] mb-3 font-serif">
-                        {feature.title}
-                      </h3>
-                      <p className="text-base sm:text-lg text-neutral-700 dark:text-[#C5BEB2] leading-[32px] max-w-xl">
+                    <h3 className="text-xl sm:text-2xl font-bold text-neutral-800 dark:text-[#E8E2D5]">
+                      {feature.title}
+                    </h3>
+                    
+                    {/* Ruled Notebook Lines */}
+                    <div className="relative py-2 leading-relaxed">
+                      {/* Journal lines texture */}
+                      <div className="absolute inset-0 flex flex-col justify-between pointer-events-none opacity-50 dark:opacity-30">
+                        <div className="w-full border-b border-[#E8E2D5] dark:border-[#38342E] h-7" />
+                        <div className="w-full border-b border-[#E8E2D5] dark:border-[#38342E] h-7" />
+                        <div className="w-full border-b border-[#E8E2D5] dark:border-[#38342E] h-7" />
+                      </div>
+                      
+                      <p className="relative z-10 text-sm sm:text-base text-neutral-600 dark:text-[#ADA595] leading-7 font-serif italic">
                         {feature.description}
                       </p>
                     </div>
@@ -219,6 +315,7 @@ export default function FeaturesSection() {
             );
           })}
         </div>
+
       </div>
     </section>
   );
