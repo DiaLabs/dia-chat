@@ -17,23 +17,24 @@ function getSystemTheme(): 'light' | 'dark' {
 }
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  const [theme, setThemeState] = useState<Theme>('light');
+  const [theme, setThemeState] = useState<Theme>('system');
   const [resolvedTheme, setResolvedTheme] = useState<'light' | 'dark'>('light');
   const [mounted, setMounted] = useState(false);
 
   // Initial mount - load saved theme and apply immediately
   useEffect(() => {
     const saved = localStorage.getItem('dia-theme') as Theme | null;
-    const initialTheme = saved || 'light';
+    const initialTheme: Theme = saved || 'system';
     setThemeState(initialTheme);
     
     // Immediately resolve and apply theme
-    let resolved: 'light' | 'dark' = initialTheme === 'system' ? 'light' : initialTheme;
+    const resolved: 'light' | 'dark' = initialTheme === 'system' ? getSystemTheme() : initialTheme;
     setResolvedTheme(resolved);
     
     // Apply to document immediately
     document.documentElement.classList.remove('light', 'dark');
     document.documentElement.classList.add(resolved);
+    document.documentElement.setAttribute('data-theme', resolved);
     
     setMounted(true);
   }, []);
@@ -43,17 +44,13 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     if (!mounted) return;
     
     const updateResolvedTheme = () => {
-      let resolved: 'light' | 'dark';
-      if (theme === 'system') {
-        resolved = getSystemTheme();
-      } else {
-        resolved = theme;
-      }
+      const resolved = theme === 'system' ? getSystemTheme() : theme;
       setResolvedTheme(resolved);
       
       // Apply to document
       document.documentElement.classList.remove('light', 'dark');
       document.documentElement.classList.add(resolved);
+      document.documentElement.setAttribute('data-theme', resolved);
     };
 
     updateResolvedTheme();

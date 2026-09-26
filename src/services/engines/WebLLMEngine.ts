@@ -43,38 +43,65 @@ export class WebLLMEngine implements LLMEngine {
     ): Promise<void> {
         this.cancelInitAbortController = new AbortController();
 
-        try {
-            // Initialize on GPU
-            console.log('Initializing on GPU...');
+        const isNetworkErr = (err: any): boolean => {
+            const msg = (err?.message || String(err)).toLowerCase();
+            return msg.includes('network') || msg.includes('fetch') || msg.includes('cache.add') || msg.includes('networkerror');
+        };
 
-            this.engine = await CreateMLCEngine(
-                config.modelId, // Use config.modelId instead of this.selectedModel
-                {
-                    initProgressCallback: (report) => {
-                        if (this.cancelInitAbortController?.signal.aborted) {
-                            throw new Error('WebLLM initialization cancelled');
-                        }
-                        if (onProgress) {
-                            onProgress({
-                                progress: report.progress * 100, // WebLLM might report 0-1, so ensure scaling if needed, or 0-100 if updated
-                                text: report.text
-                            });
-                        }
-                    },
-                    logLevel: "WARN",
-                    // powerPreference removed
+        const maxAttempts = 3;
+        let lastError: any;
+
+        for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+            try {
+                console.log(`Initializing on GPU (attempt ${attempt}/${maxAttempts})...`);
+
+                this.engine = await CreateMLCEngine(
+                    config.modelId,
+                    {
+                        initProgressCallback: (report) => {
+                            if (this.cancelInitAbortController?.signal.aborted) {
+                                throw new Error('WebLLM initialization cancelled');
+                            }
+                            if (onProgress) {
+                                onProgress({
+                                    progress: report.progress * 100,
+                                    text: report.text
+                                });
+                            }
+                        },
+                        logLevel: "WARN",
+                    }
+                );
+
+                this.isInitialized = true;
+                this.cancelInitAbortController = null;
+                onProgress?.({ progress: 100, text: 'Ready!' });
+                return;
+            } catch (error: any) {
+                lastError = error;
+                if (this.cancelInitAbortController?.signal.aborted) {
+                    this.initPromise = null;
+                    this.cancelInitAbortController = null;
+                    throw error;
                 }
-            );
 
-            this.isInitialized = true;
-            this.cancelInitAbortController = null;
-            onProgress?.({ progress: 100, text: 'Ready!' });
-        } catch (error) {
-            this.initPromise = null;
-            this.cancelInitAbortController = null;
-            console.error('Failed to initialize WebLLM:', error);
-            throw error;
+                console.warn(`WebLLM init attempt ${attempt} failed:`, error);
+
+                if (isNetworkErr(error) && attempt < maxAttempts) {
+                    onProgress?.({ progress: 0, text: `Connection interrupted. Resuming (${attempt}/${maxAttempts})...` });
+                    await new Promise(resolve => setTimeout(resolve, 2000));
+                    continue;
+                }
+
+                this.initPromise = null;
+                this.cancelInitAbortController = null;
+                throw error;
+            }
         }
+
+        this.initPromise = null;
+        this.cancelInitAbortController = null;
+        throw lastError;
     }
 
     async generateResponse(

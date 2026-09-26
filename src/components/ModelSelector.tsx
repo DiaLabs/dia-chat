@@ -36,8 +36,8 @@ export default function ModelSelector({
  <Menu.Button
  className={
  compact
- ? 'relative overflow-hidden flex items-center justify-center p-2 rounded-full text-neutral-600 bg-neutral-100 hover:bg-neutral-200 transition-colors outline-none focus:ring-2 focus:ring-[rgb(var(--primary))]/20 cursor-pointer'
- : 'relative overflow-hidden flex items-center justify-between w-full md:w-auto gap-2 text-xs font-mono text-neutral-600 bg-neutral-100 hover:bg-neutral-200 px-3 py-2 md:py-1.5 rounded-full transition-colors outline-none focus:ring-2 focus:ring-[rgb(var(--primary))]/20 cursor-pointer'
+ ? 'relative overflow-hidden flex items-center justify-center p-2 rounded-full text-neutral-600 dark:text-neutral-300 bg-neutral-100 dark:bg-neutral-800 hover:bg-neutral-200 dark:hover:bg-neutral-700 transition-colors outline-none focus:ring-2 focus:ring-[rgb(var(--primary))]/20 cursor-pointer'
+ : 'relative overflow-hidden flex items-center justify-between w-full md:w-auto gap-2 text-xs font-mono text-neutral-600 dark:text-neutral-300 bg-neutral-100 dark:bg-neutral-800 hover:bg-neutral-200 dark:hover:bg-neutral-700 px-3 py-2 md:py-1.5 rounded-full transition-colors outline-none focus:ring-2 focus:ring-[rgb(var(--primary))]/20 cursor-pointer'
  }
  >
  {/* Progress fill background */}
@@ -80,9 +80,7 @@ export default function ModelSelector({
  
  {activeEngine && (
  <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium border ${
- activeEngine === 'webllm' 
- ? 'bg-green-100 text-green-700 border-green-200 ' 
- : 'bg-amber-100 text-amber-700 border-amber-200 '
+ activeEngine === 'webllm' ? 'bg-green-100 dark:bg-green-950/60 text-green-700 dark:text-green-300 border-green-200 dark:border-green-800 ' : 'bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800 '
  }`}>
  {activeEngine === 'webllm' ? 'GPU' : 'CPU'}
  </span>
@@ -117,7 +115,7 @@ export default function ModelSelector({
  leaveFrom="transform opacity-100 scale-100"
  leaveTo="transform opacity-0 scale-95"
  >
- <Menu.Items className="absolute right-0 top-full mt-2 w-72 origin-top-right divide-y divide-neutral-100 rounded-xl bg-white shadow-xl ring-1 ring-black/5 focus:outline-none z-50">
+ <Menu.Items className="absolute right-0 top-full mt-2 w-72 origin-top-right divide-y divide-neutral-100 dark:divide-neutral-800 rounded-xl bg-white dark:bg-[#1A1916] shadow-xl ring-1 ring-black/5 dark:ring-white/10 focus:outline-none z-50">
  {/* Download Button Section */}
  {showDownloadButton && (
  <div className="p-3">
@@ -131,7 +129,7 @@ export default function ModelSelector({
  <Download className="w-4 h-4" />
  Download {ACTIVE_MODEL.name} ({ACTIVE_MODEL.size})
  </button>
- <p className="text-[10px] text-neutral-500 text-center mt-2">
+ <p className="text-[10px] text-neutral-500 dark:text-neutral-400 text-center mt-2">
  {ACTIVE_MODEL.name} will be cached for offline use
  </p>
  </div>
@@ -149,8 +147,8 @@ export default function ModelSelector({
  <Menu.Item disabled>
  <button className="group flex w-full items-center justify-between rounded-lg px-3 py-2 text-xs opacity-50 cursor-not-allowed">
  <div className="flex flex-col items-start gap-0.5">
- <span className="font-semibold text-neutral-900 ">{model.name}</span>
- <span className="text-neutral-500 font-mono text-[10px]">
+ <span className="font-semibold text-neutral-900 dark:text-neutral-100">{model.name}</span>
+ <span className="text-neutral-500 dark:text-neutral-400 font-mono text-[10px]">
  {model.description}
  </span>
  </div>
@@ -169,7 +167,7 @@ export default function ModelSelector({
  return (
  <div
  className={`${
- active ? 'bg-neutral-100 ' : ''
+ active ? 'bg-neutral-100 dark:bg-neutral-800 ' : ''
  } group flex w-full items-center justify-between rounded-lg px-3 py-2 text-xs relative overflow-hidden`}
  >
  {/* Loading Progress Background Fill */}
@@ -181,8 +179,8 @@ export default function ModelSelector({
  )}
 
  <div className="flex flex-col items-start gap-0.5 relative z-10">
- <span className="font-semibold text-neutral-900 ">{model.name}</span>
- <span className="text-neutral-500 font-mono text-[10px]">
+ <span className="font-semibold text-neutral-900 dark:text-neutral-100">{model.name}</span>
+ <span className="text-neutral-500 dark:text-neutral-400 font-mono text-[10px]">
  {showLoading 
  ? `Loading... ${Math.round(progress)}%`
  : `${model.size || ''} • ${showCached ? 'Cached' : 'Not downloaded'}`

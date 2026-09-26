@@ -167,12 +167,27 @@ export class LLMService {
                 }
             };
 
+            const isNetworkError = (err: unknown): boolean => {
+                if (!err) return false;
+                const msg = (err instanceof Error ? err.message : String(err)).toLowerCase();
+                const name = (err instanceof Error ? err.name : '').toLowerCase();
+                return (
+                    name.includes('networkerror') ||
+                    msg.includes('network') ||
+                    msg.includes('fetch') ||
+                    msg.includes('cache') ||
+                    msg.includes('connection') ||
+                    msg.includes('timeout') ||
+                    (typeof navigator !== 'undefined' && !navigator.onLine)
+                );
+            };
+
             try {
                 await initEngine(engineType);
             } catch (initError) {
-                // If WebLLM fails, try fallback to Transformers
-                if (engineType === 'webllm') {
-                    console.warn('WebLLM initialization failed, falling back to CPU/Transformers...', initError);
+                // If WebLLM fails due to genuine WebGPU incompatibility/device errors (NOT network drops), fallback to Transformers
+                if (engineType === 'webllm' && !isNetworkError(initError)) {
+                    console.warn('WebLLM WebGPU initialization failed, falling back to CPU/Transformers...', initError);
 
                     // Cleanup failed engine
                     this.engine = null;

@@ -120,15 +120,15 @@ export default function Settings({ isOpen, onClose, onRefreshChats }: SettingsPr
  leaveFrom="opacity-100 scale-100"
  leaveTo="opacity-0 scale-95"
  >
- <DialogPanel className="w-full max-w-md rounded-3xl bg-white/80 backdrop-blur-xl p-6 shadow-2xl border border-neutral-200/50 ">
+ <DialogPanel className="w-full max-w-md rounded-3xl bg-white/95 dark:bg-[#1A1916]/95 backdrop-blur-xl p-6 shadow-2xl border border-neutral-200/50 dark:border-neutral-800 ">
  {/* Header */}
  <div className="flex items-center justify-between mb-6">
- <DialogTitle className="text-xl font-bold text-neutral-900 ">
+ <DialogTitle className="text-xl font-bold text-neutral-900 dark:text-neutral-100">
  Settings
  </DialogTitle>
  <button
  onClick={onClose}
- className="p-2 rounded-full hover:bg-neutral-100 transition-colors cursor-pointer"
+ className="p-2 rounded-full hover:bg-neutral-100 dark:hover:bg-neutral-800 text-neutral-500 dark:text-neutral-400 transition-colors cursor-pointer"
  >
  <X className="w-5 h-5 text-neutral-500" />
  </button>
@@ -137,10 +137,10 @@ export default function Settings({ isOpen, onClose, onRefreshChats }: SettingsPr
  <div className="space-y-6">
  {/* Theme - Sliding Pill */}
  <div>
- <label className="block text-sm font-semibold text-neutral-700 mb-3">
+ <label className="block text-sm font-semibold text-neutral-700 dark:text-neutral-300 mb-3">
  Theme
  </label>
- <div className="flex items-center gap-1 p-1 rounded-full bg-neutral-100 ">
+ <div className="flex items-center gap-1 p-1 rounded-full bg-neutral-100 dark:bg-neutral-800/80 ">
  {themes.map((option) => (
  <button
  key={option.value}
@@ -148,8 +148,8 @@ export default function Settings({ isOpen, onClose, onRefreshChats }: SettingsPr
  className={clsx(
  'flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-full transition-all text-sm font-medium cursor-pointer',
  theme === option.value
- ? 'bg-white shadow-sm text-[rgb(var(--primary))]'
- : 'text-neutral-500 hover:text-neutral-900 '
+ ? 'bg-white dark:bg-neutral-700 shadow-sm text-[rgb(var(--primary))] font-semibold'
+ : 'text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-100'
  )}
  >
  <option.icon className="w-4 h-4" />
@@ -161,7 +161,7 @@ export default function Settings({ isOpen, onClose, onRefreshChats }: SettingsPr
 
  {/* Accent Color - Compact */}
  <div>
- <label className="block text-sm font-semibold text-neutral-700 mb-3">
+ <label className="block text-sm font-semibold text-neutral-700 dark:text-neutral-300 mb-3">
  Accent Color
  </label>
  <div className="flex items-center gap-2">
@@ -173,7 +173,7 @@ export default function Settings({ isOpen, onClose, onRefreshChats }: SettingsPr
  'relative w-10 h-10 rounded-full transition-all cursor-pointer',
  color.colorClass,
  accentColor === color.value
- ? 'ring-2 ring-offset-2 ring-offset-white ring-neutral-400 scale-110'
+ ? 'ring-2 ring-offset-2 ring-offset-white dark:ring-offset-neutral-900 ring-neutral-400 dark:ring-neutral-500 scale-110'
  : 'hover:scale-105'
  )}
  >
@@ -189,10 +189,10 @@ export default function Settings({ isOpen, onClose, onRefreshChats }: SettingsPr
 
  {/* Font Size - Sliding Pill */}
  <div>
- <label className="block text-sm font-semibold text-neutral-700 mb-3">
+ <label className="block text-sm font-semibold text-neutral-700 dark:text-neutral-300 mb-3">
  Font Size
  </label>
- <div className="flex items-center gap-1 p-1 rounded-full bg-neutral-100 ">
+ <div className="flex items-center gap-1 p-1 rounded-full bg-neutral-100 dark:bg-neutral-800/80 ">
  {fontSizes.map((size) => (
  <button
  key={size.value}
@@ -200,8 +200,8 @@ export default function Settings({ isOpen, onClose, onRefreshChats }: SettingsPr
  className={clsx(
  'flex-1 px-4 py-2 rounded-full transition-all text-sm font-medium cursor-pointer',
  fontSize === size.value
- ? 'bg-white shadow-sm text-[rgb(var(--primary))]'
- : 'text-neutral-500 hover:text-neutral-900 '
+ ? 'bg-white dark:bg-neutral-700 shadow-sm text-[rgb(var(--primary))] font-semibold'
+ : 'text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-100'
  )}
  >
  {size.label}
@@ -212,10 +212,10 @@ export default function Settings({ isOpen, onClose, onRefreshChats }: SettingsPr
 
  {/* Cache Duration - Sliding Pill */}
  <div>
- <label className="block text-sm font-semibold text-neutral-700 mb-3">
+ <label className="block text-sm font-semibold text-neutral-700 dark:text-neutral-300 mb-3">
  Cache Duration
  </label>
- <div className="flex items-center gap-1 p-1 rounded-full bg-neutral-100 ">
+ <div className="flex items-center gap-1 p-1 rounded-full bg-neutral-100 dark:bg-neutral-800/80 ">
  {cacheDurations.map((duration) => (
  <button
  key={duration.value}
@@ -223,8 +223,8 @@ export default function Settings({ isOpen, onClose, onRefreshChats }: SettingsPr
  className={clsx(
  'flex-1 px-3 py-2 rounded-full transition-all text-sm font-medium whitespace-nowrap cursor-pointer',
  cacheDuration === duration.value
- ? 'bg-white shadow-sm text-[rgb(var(--primary))]'
- : 'text-neutral-500 hover:text-neutral-900 '
+ ? 'bg-white dark:bg-neutral-700 shadow-sm text-[rgb(var(--primary))] font-semibold'
+ : 'text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-100'
  )}
  >
  {duration.label}
@@ -235,10 +235,10 @@ export default function Settings({ isOpen, onClose, onRefreshChats }: SettingsPr
 
  {/* Inference Mode */}
  <div>
- <label className="block text-sm font-semibold text-neutral-700 mb-3">
+ <label className="block text-sm font-semibold text-neutral-700 dark:text-neutral-300 mb-3">
  Inference Engine
  </label>
- <div className="flex items-center gap-1 p-1 rounded-full bg-neutral-100 ">
+ <div className="flex items-center gap-1 p-1 rounded-full bg-neutral-100 dark:bg-neutral-800/80 ">
  {[
  { value: 'auto', label: 'Auto' },
  { value: 'gpu', label: 'GPU', disabled: !gpuAvailable },
@@ -251,10 +251,10 @@ export default function Settings({ isOpen, onClose, onRefreshChats }: SettingsPr
  className={clsx(
  'flex-1 px-3 py-2 rounded-full transition-all text-sm font-medium cursor-pointer',
  inferenceMode === mode.value
- ? 'bg-white shadow-sm text-[rgb(var(--primary))]'
+ ? 'bg-white dark:bg-neutral-700 shadow-sm text-[rgb(var(--primary))] font-semibold'
  : mode.disabled 
- ? 'text-neutral-300 cursor-not-allowed'
- : 'text-neutral-500 hover:text-neutral-900 '
+ ? 'text-neutral-300 dark:text-neutral-600 cursor-not-allowed'
+ : 'text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-100'
  )}
  title={mode.disabled ? 'WebGPU not available on this device' : ''}
  >
@@ -274,10 +274,10 @@ export default function Settings({ isOpen, onClose, onRefreshChats }: SettingsPr
  <div className="flex items-center gap-3 p-3 rounded-2xl bg-[rgb(var(--primary))]/10 border border-[rgb(var(--primary))]/30 ">
  <Cpu className="w-5 h-5 text-[rgb(var(--primary-hover))] shrink-0" />
  <div className="flex-1 min-w-0">
- <p className="text-xs font-mono text-neutral-600 truncate">
+ <p className="text-xs font-mono text-neutral-600 dark:text-neutral-300 truncate">
  {ACTIVE_MODEL.name} v{ACTIVE_MODEL.version}
  </p>
- <p className="text-xs text-neutral-500 ">
+ <p className="text-xs text-neutral-500 dark:text-neutral-400">
  {ACTIVE_MODEL.description}
  </p>
  </div>
@@ -286,7 +286,7 @@ export default function Settings({ isOpen, onClose, onRefreshChats }: SettingsPr
 
  {/* Data Management - Side by Side at Bottom */}
  <div className="pt-4 border-t border-neutral-200 ">
- <label className="block text-sm font-semibold text-neutral-700 mb-3">
+ <label className="block text-sm font-semibold text-neutral-700 dark:text-neutral-300 mb-3">
  Data Management
  </label>
  
@@ -294,14 +294,14 @@ export default function Settings({ isOpen, onClose, onRefreshChats }: SettingsPr
  <div className="grid grid-cols-2 gap-2">
  <button
  onClick={() => setShowClearConfirm(true)}
- className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-full bg-neutral-100 hover:bg-neutral-200 text-neutral-700 text-sm font-medium transition-all cursor-pointer"
+ className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-full bg-neutral-100 dark:bg-neutral-800 hover:bg-neutral-200 dark:hover:bg-neutral-700 text-neutral-700 dark:text-neutral-300 text-sm font-medium transition-all cursor-pointer"
  >
  <Trash2 className="w-4 h-4" />
  Clear Chats
  </button>
  <button
  onClick={() => setShowResetConfirm(true)}
- className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-full bg-red-50 hover:bg-red-100 text-red-600 text-sm font-medium transition-all cursor-pointer"
+ className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-full bg-red-50 dark:bg-red-950/40 hover:bg-red-100 dark:hover:bg-red-900/50 text-red-600 dark:text-red-400 text-sm font-medium transition-all cursor-pointer"
  >
  <AlertTriangle className="w-4 h-4" />
  Reset All
@@ -312,8 +312,8 @@ export default function Settings({ isOpen, onClose, onRefreshChats }: SettingsPr
  disabled={modelCacheClearing}
  className={`col-span-2 flex items-center justify-center gap-2 px-4 py-2.5 rounded-full text-sm font-medium transition-all cursor-pointer ${
  modelCacheCleared
- ? 'bg-green-100 text-green-700 '
- : 'bg-neutral-100 hover:bg-neutral-200 text-neutral-700 '
+ ? 'bg-green-100 dark:bg-green-950/60 text-green-700 dark:text-green-300 '
+ : 'bg-neutral-100 dark:bg-neutral-800 hover:bg-neutral-200 dark:hover:bg-neutral-700 text-neutral-700 dark:text-neutral-300 '
  }`}
  >
  {modelCacheClearing ? (
@@ -336,7 +336,7 @@ export default function Settings({ isOpen, onClose, onRefreshChats }: SettingsPr
  </div>
  ) : showClearConfirm ? (
  <div className="p-4 rounded-2xl bg-[rgb(var(--primary))]/10 border border-[rgb(var(--primary))]/30 ">
- <p className="text-sm text-neutral-900 mb-3 font-medium">
+ <p className="text-sm text-neutral-900 dark:text-neutral-100 mb-3 font-medium">
  Clear chats older than {cacheDuration} days?
  </p>
  <div className="flex gap-2">
@@ -348,15 +348,15 @@ export default function Settings({ isOpen, onClose, onRefreshChats }: SettingsPr
  </button>
  <button
  onClick={() => setShowClearConfirm(false)}
- className="flex-1 px-4 py-2 rounded-full bg-neutral-200 hover:bg-neutral-300 text-neutral-700 text-sm font-semibold transition-all cursor-pointer"
+ className="flex-1 px-4 py-2 rounded-full bg-neutral-200 dark:bg-neutral-700 hover:bg-neutral-300 dark:hover:bg-neutral-600 text-neutral-700 dark:text-neutral-200 text-sm font-semibold transition-all cursor-pointer"
  >
  Cancel
  </button>
  </div>
  </div>
  ) : (
- <div className="p-4 rounded-2xl bg-red-50 border border-red-200 ">
- <p className="text-sm text-red-900 mb-3 font-medium">
+ <div className="p-4 rounded-2xl bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900/50 ">
+ <p className="text-sm text-red-900 dark:text-red-200 mb-3 font-medium">
  Delete all chats and reset settings?
  </p>
  <div className="flex gap-2">
@@ -368,7 +368,7 @@ export default function Settings({ isOpen, onClose, onRefreshChats }: SettingsPr
  </button>
  <button
  onClick={() => setShowResetConfirm(false)}
- className="flex-1 px-4 py-2 rounded-full bg-neutral-200 hover:bg-neutral-300 text-neutral-700 text-sm font-semibold transition-all cursor-pointer"
+ className="flex-1 px-4 py-2 rounded-full bg-neutral-200 dark:bg-neutral-700 hover:bg-neutral-300 dark:hover:bg-neutral-600 text-neutral-700 dark:text-neutral-200 text-sm font-semibold transition-all cursor-pointer"
  >
  Cancel
  </button>

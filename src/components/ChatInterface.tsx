@@ -187,13 +187,13 @@ export default function ChatInterface({
  <div className="flex flex-col h-full relative">
  {/* Floating Header - pill shaped */}
  <div className="absolute top-4 left-4 right-4 z-20">
- <div className="max-w-5xl mx-auto flex items-center justify-between gap-3 px-4 sm:px-5 py-3 rounded-full bg-white/80 backdrop-blur-md border border-neutral-200/50 shadow-lg relative">
+ <div className="max-w-5xl mx-auto flex items-center justify-between gap-3 px-4 sm:px-5 py-3 rounded-full bg-white/80 dark:bg-neutral-900/80 backdrop-blur-md border border-neutral-200/50 dark:border-neutral-800/50 shadow-lg relative">
   {/* Left Section */}
   <div className="flex items-center gap-3">
   {/* Menu toggle button for both mobile overlay and desktop collapsing */}
   <button
   onClick={onToggleSidebar}
-  className="p-1.5 -ml-1 text-neutral-500 hover:text-neutral-900 rounded-full hover:bg-neutral-100 transition-colors cursor-pointer"
+  className="p-1.5 -ml-1 text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-neutral-100 rounded-full hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors cursor-pointer"
   aria-label={sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
   >
   <MenuIcon className="w-5 h-5" />
@@ -205,70 +205,70 @@ export default function ChatInterface({
   {!sidebarCollapsed ? (
     <>
       <Logo className="w-6 h-6 text-[rgb(var(--primary))]" />
-      <span className="text-lg font-bold text-neutral-900 ">
+      <span className="text-lg font-bold text-neutral-900 dark:text-neutral-100">
       Dia Chat
       </span>
     </>
   ) : (
-    <span className="text-lg font-bold text-neutral-900 ">
+    <span className="text-lg font-bold text-neutral-900 dark:text-neutral-100">
     Dia Chat
     </span>
   )}
  
   {/* Version Badge - Desktop */}
-  <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-green-500/10 border border-green-500/20 text-xs font-medium text-green-700 ml-1">
+  <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-green-500/10 border border-green-500/20 text-xs font-medium text-green-700 dark:text-green-400 ml-1">
   <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" />
-  <span>v{process.env.NEXT_PUBLIC_APP_VERSION || '0.1.0'}</span>
+  <span>v{process.env.NEXT_PUBLIC_APP_VERSION || '0.9.9'}</span>
   </div>
   </div>
   </div>
   </div>
 
  {/* Mobile Center: Logo + Title + Version */}
- <div className="md:hidden absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center gap-2 pointer-events-none">
- <Logo className="w-6 h-6 text-[rgb(var(--primary))]" />
- <span className="font-bold text-neutral-900 text-lg">Dia Chat</span>
- <span className="text-xs font-medium text-green-600 bg-green-500/10 px-1.5 py-0.5 rounded-full border border-green-500/20">
- v{process.env.NEXT_PUBLIC_APP_VERSION || '0.1.0'}
- </span>
- </div>
+	<div className="flex md:hidden items-center gap-1.5">
+	<Logo className="w-5 h-5 text-[rgb(var(--primary))]" />
+	<span className="font-bold text-neutral-900 dark:text-neutral-100 text-base">Dia Chat</span>
+	<span className="text-[10px] font-medium text-green-600 dark:text-green-400 bg-green-500/10 px-1.5 py-0.5 rounded-full border border-green-500/20">
+	v{process.env.NEXT_PUBLIC_APP_VERSION || '0.9.9'}
+	</span>
+	</div>
 
- {/* Right Section - Model Selector */}
- <div className="flex items-center gap-3">
- {/* Desktop: Full Selector */}
- <div className="hidden md:block">
- <ModelSelector
- isLoading={isModelLoading}
- isReady={isModelReady}
- isCached={isCached}
- progress={modelProgress}
- progressText={progressText}
- onDownload={initializeModel}
- onCancel={cancelDownload}
- activeEngine={activeEngine}
- />
- </div>
+	{/* Right Section - Model Selector */}
+	<div className="flex items-center gap-3">
+	{/* Desktop: Full Selector */}
+	<div className="hidden md:block">
+	<ModelSelector
+	isLoading={isModelLoading}
+	isReady={isModelReady}
+	isCached={isCached}
+	progress={modelProgress}
+	progressText={progressText}
+	onDownload={initializeModel}
+	onCancel={cancelDownload}
+	activeEngine={activeEngine}
+	/>
+	</div>
 
- {/* Mobile: Compact Selector */}
- <div className="md:hidden">
- <ModelSelector
- compact
- isLoading={isModelLoading}
- isReady={isModelReady}
- isCached={isCached}
- progress={modelProgress}
- progressText={progressText}
- onDownload={initializeModel}
- onCancel={cancelDownload}
- activeEngine={activeEngine}
- />
- </div>
- </div>
- </div>
- </div>
+	{/* Mobile: Compact Selector */}
+	<div className="md:hidden">
+	<ModelSelector
+	compact
+	isLoading={isModelLoading}
+	isReady={isModelReady}
+	isCached={isCached}
+	progress={modelProgress}
+	progressText={progressText}
+	onDownload={initializeModel}
+	onCancel={cancelDownload}
+	activeEngine={activeEngine}
+	/>
+	</div>
+	</div>
+	</div>
+	</div>
 
  {/* Messages */}
- <div className="flex-1 overflow-y-auto px-4 pt-24">
+ <div className="flex-1 overflow-y-auto px-4 pt-4 md:pt-6">
  {messages.length === 0 ? (
  <motion.div
  initial={{ opacity: 0, y: 20 }}
@@ -297,16 +297,16 @@ export default function ChatInterface({
 
  {/* Model Loading from Cache */}
  {isCached && isModelLoading && !isModelReady && (
- <div className="mb-6 p-4 bg-neutral-50 border border-neutral-200 rounded-xl max-w-md backdrop-blur-sm">
+ <div className="mb-6 p-4 bg-neutral-50/90 dark:bg-neutral-900/90 border border-neutral-200 dark:border-neutral-800 rounded-xl max-w-md backdrop-blur-sm">
  <div className="flex items-center justify-between mb-1.5">
  <div className="flex items-center gap-2">
  <Loader2 className="w-4 h-4 animate-spin text-[rgb(var(--primary))]" />
- <span className="text-sm font-medium text-neutral-900 ">Loading Dia GenZ 1B...</span>
+ <span className="text-sm font-medium text-neutral-900 dark:text-neutral-100 ">Loading Dia GenZ 1B...</span>
  </div>
- <span className="text-xs font-mono text-neutral-500 ">{Math.round(modelProgress)}%</span>
+ <span className="text-xs font-mono text-neutral-500 dark:text-neutral-400 ">{Math.round(modelProgress)}%</span>
  </div>
  {/* Subtle progress bar */}
- <div className="h-1 w-full bg-neutral-200 rounded-full overflow-hidden">
+ <div className="h-1 w-full bg-neutral-200 dark:bg-neutral-700 rounded-full overflow-hidden">
  <div 
  className="h-full bg-[rgb(var(--primary))] transition-all duration-300 ease-out"
  style={{ width: `${Math.max(5, modelProgress)}%` }}
@@ -317,8 +317,8 @@ export default function ChatInterface({
 
  {/* Model Error - Show with retry button */}
  {modelError && !isModelLoading && (
- <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl max-w-md">
- <p className="text-sm text-red-700 mb-3">
+ <div className="mb-6 p-4 bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900/50 rounded-xl max-w-md">
+ <p className="text-sm text-red-700 dark:text-red-300 mb-3">
  {modelError || "Failed to load Dia GenZ 1B. Please check your internet connection and try again."}
  </p>
  <button
@@ -337,10 +337,11 @@ export default function ChatInterface({
  disabled={!isModelReady}
  onClick={() => handleSuggestedTopic(topic.prompt)}
  className={clsx(
- 'px-4 py-3 rounded-full text-center bg-white/80 border border-neutral-200 text-neutral-700 text-sm transition-colors backdrop-blur-sm shadow-sm',
- isModelReady
- ? 'hover:bg-[rgb(var(--primary))]/5 hover:border-[rgb(var(--primary))]/50 cursor-pointer'
- : 'opacity-50 cursor-not-allowed'
+ 'px-4 py-3 rounded-full text-center bg-white/80 dark:bg-neutral-800/80 border border-neutral-200 dark:border-neutral-700 text-neutral-700 dark:text-neutral-200 text-sm transition-colors backdrop-blur-sm shadow-xs',
+		isModelReady
+		? 'hover:bg-[rgb(var(--primary))]/5 dark:hover:bg-[rgb(var(--primary))]/10 hover:border-[rgb(var(--primary))]/50 cursor-pointer'
+		: 'opacity-50 cursor-not-allowed'
+ 
  )}
  >
  {topic.title}
@@ -348,7 +349,7 @@ export default function ChatInterface({
  ))}
  </div>
 
- <p className="mt-8 text-xs text-center text-neutral-400 max-w-md mx-auto px-4">
+ <p className="mt-8 text-xs text-center text-neutral-400 dark:text-neutral-500 max-w-md mx-auto px-4">
  Dia is an AI companion. Responses are generated on your device for privacy.
  </p>
  </motion.div>
@@ -399,7 +400,7 @@ export default function ChatInterface({
  {/* Floating Input - pill shaped and frosty */}
  <div className="p-4 z-20 shrink-0">
  <div className="max-w-4xl mx-auto">
- <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/90 backdrop-blur-md border border-neutral-200/50 shadow-md transition-all focus-within:border-neutral-200/50 ">
+ <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/90 dark:bg-neutral-900/90 backdrop-blur-md border border-neutral-200/50 dark:border-neutral-800 shadow-md transition-all focus-within:border-[rgb(var(--primary))]/40 ">
  <textarea
  ref={inputRef}
  value={input}
@@ -418,7 +419,7 @@ export default function ChatInterface({
  }
  rows={1}
  style={{ outline: 'none', boxShadow: 'none' }}
- className="flex-1 px-2 py-1 bg-transparent text-neutral-900 placeholder-neutral-500 resize-none !outline-none !ring-0 !border-0 focus:!outline-none focus:!ring-0 focus:!border-0 focus-visible:!outline-none focus-visible:!ring-0"
+ className="flex-1 px-2 py-1 bg-transparent text-neutral-900 dark:text-neutral-100 placeholder-neutral-500 dark:placeholder-neutral-500 resize-none !outline-none !ring-0 !border-0 focus:!outline-none focus:!ring-0 focus:!border-0 focus-visible:!outline-none focus-visible:!ring-0"
  />
  {isSending || queuedMessage ? (
  <button
@@ -427,7 +428,7 @@ export default function ChatInterface({
  handleStopGeneration();
  }
  }}
- className="p-2 rounded-full transition-all bg-neutral-100 hover:bg-neutral-200 text-neutral-500 hover:text-neutral-900 cursor-pointer"
+ className="p-2 rounded-full transition-all bg-neutral-100 dark:bg-neutral-800 hover:bg-neutral-200 dark:hover:bg-neutral-700 text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-100 cursor-pointer"
  title={isSending ? "Stop generating" : "Waiting for model..."}
  >
  <div className="relative">
@@ -449,7 +450,7 @@ export default function ChatInterface({
  'p-2 rounded-full transition-all flex items-center justify-center',
  input.trim()
  ? 'text-[rgb(var(--primary))] hover:bg-[rgb(var(--primary))]/10 cursor-pointer scale-100 opacity-100'
- : 'text-neutral-300 cursor-not-allowed scale-95 opacity-50'
+ : 'text-neutral-300 dark:text-neutral-600 cursor-not-allowed scale-95 opacity-50'
  )}
  title={isModelReady ? "Send message" : "Send (will queue until model loads)"}
  >
