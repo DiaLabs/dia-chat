@@ -76,8 +76,6 @@ export default function ModelSelector({
  ? `${Math.round(progress)}%` 
  : isReady 
  ? ACTIVE_MODEL.name
- : isCached 
- ? 'Model Cached' 
  : ACTIVE_MODEL.name}
  
  {activeEngine && (
@@ -131,10 +129,10 @@ export default function ModelSelector({
  className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-[rgb(var(--primary))] hover:bg-[rgb(var(--primary-hover))] text-neutral-900 font-semibold rounded-lg transition-all cursor-pointer"
  >
  <Download className="w-4 h-4" />
- Download Model ({ACTIVE_MODEL.size})
+ Download {ACTIVE_MODEL.name} ({ACTIVE_MODEL.size})
  </button>
  <p className="text-[10px] text-neutral-500 text-center mt-2">
- Model will be cached for offline use
+ {ACTIVE_MODEL.name} will be cached for offline use
  </p>
  </div>
  )}
@@ -187,7 +185,7 @@ export default function ModelSelector({
  <span className="text-neutral-500 font-mono text-[10px]">
  {showLoading 
  ? `Loading... ${Math.round(progress)}%`
- : `${model.quantization || ''} • ${showCached ? 'Cached' : 'Not downloaded'}`
+ : `${model.size || ''} • ${showCached ? 'Cached' : 'Not downloaded'}`
  }
  </span>
  </div>

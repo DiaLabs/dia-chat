@@ -275,7 +275,7 @@ export default function Settings({ isOpen, onClose, onRefreshChats }: SettingsPr
  <Cpu className="w-5 h-5 text-[rgb(var(--primary-hover))] shrink-0" />
  <div className="flex-1 min-w-0">
  <p className="text-xs font-mono text-neutral-600 truncate">
- {ACTIVE_MODEL.name} v{ACTIVE_MODEL.version} ({ACTIVE_MODEL.quantization})
+ {ACTIVE_MODEL.name} v{ACTIVE_MODEL.version}
  </p>
  <p className="text-xs text-neutral-500 ">
  {ACTIVE_MODEL.description}
@@ -329,7 +329,7 @@ export default function Settings({ isOpen, onClose, onRefreshChats }: SettingsPr
  ) : (
  <>
  <Trash2 className="w-4 h-4" />
- Delete Model Cache ({ACTIVE_MODEL.size})
+ Delete {ACTIVE_MODEL.name} Cache ({ACTIVE_MODEL.size})
  </>
  )}
  </button>

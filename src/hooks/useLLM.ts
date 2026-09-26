@@ -25,6 +25,27 @@ interface UseLLMResult {
     unload: () => Promise<void>;
 }
 
+function sanitizeProgressText(text?: string): string {
+    if (!text) return 'Loading Dia GenZ 1B...';
+    // If text leaks technical repository, file names, URLs or underlying model names
+    if (/https?:\/\/|llama|gemma|onnx|mlc|huggingface|model_|\.bin|\.onnx|\.wasm/i.test(text)) {
+        if (/download|fetch/i.test(text)) {
+            return 'Downloading Dia GenZ 1B...';
+        }
+        return 'Loading Dia GenZ 1B...';
+    }
+    return text;
+}
+
+function sanitizeModelError(err: unknown): string {
+    if (err instanceof Error) {
+        if (err.message.toLowerCase().includes('abort') || err.message.toLowerCase().includes('cancel')) {
+            return 'Download cancelled';
+        }
+    }
+    return 'Failed to load Dia GenZ 1B. Please check your internet connection and try again.';
+}
+
 export function useLLM(): UseLLMResult {
     const service = useRef(LLMService.getInstance());
     const { inferenceMode } = useAppSettings();
@@ -88,20 +109,22 @@ export function useLLM(): UseLLMResult {
                         await service.current.initialize(config, (progressInfo) => {
                             if (mounted) {
                                 setProgress(progressInfo.progress);
-                                setProgressText(progressInfo.text);
+                                setProgressText(sanitizeProgressText(progressInfo.text));
                             }
                         });
 
                         if (mounted) {
                             setIsReady(true);
                             setIsLoading(false);
+                            setActiveEngine(service.current.getActiveEngine());
                             console.log('Model initialized successfully from cache');
                         }
                     } catch (err) {
                         console.error('Failed to auto-initialize cached model:', err);
                         if (mounted) {
                             setIsLoading(false);
-                            setError(err instanceof Error ? err.message : 'Failed to initialize');
+                            setActiveEngine(service.current.getActiveEngine());
+                            setError(sanitizeModelError(err));
                             // Don't set isCached to false - it's still cached, just failed to load
                         }
                     }
@@ -109,7 +132,7 @@ export function useLLM(): UseLLMResult {
             } catch (err) {
                 console.error('Failed to check cache:', err);
                 if (mounted) {
-                    setError(err instanceof Error ? err.message : 'Failed to check cache');
+                    setError('Failed to check Dia GenZ 1B cache');
                 }
             }
         };
@@ -136,24 +159,24 @@ export function useLLM(): UseLLMResult {
             setIsLoading(true);
             setError(null);
             setProgress(0);
-            setProgressText('Initializing...');
+            setProgressText('Initializing Dia GenZ 1B...');
 
             await service.current.initialize(DEFAULT_CONFIG, (progressInfo) => {
                 setProgress(progressInfo.progress);
-                setProgressText(progressInfo.text);
+                setProgressText(sanitizeProgressText(progressInfo.text));
             });
 
             setIsReady(true);
             setIsCached(true);
             setActiveEngine(service.current.getActiveEngine());
             setProgress(100);
-            setProgressText('Ready!');
+            setProgressText('Dia GenZ 1B is ready!');
         } catch (err: unknown) {
             console.error('Failed to initialize LLM:', err);
-            const errorMessage = err instanceof Error ? err.message : 'Failed to initialize model';
-            setError(errorMessage);
+            setError(sanitizeModelError(err));
             setIsReady(false);
             setIsLoading(false);
+            setActiveEngine(service.current.getActiveEngine());
         }
     }, []);
 

@@ -149,7 +149,7 @@ export default function ChatInterface({
  // Show error to user
  await onAddMessage(
  'assistant',
- `Sorry, I encountered an error: ${errorMessage}. Please try again.`
+ 'Sorry, I encountered an issue while generating a response. Please try again.'
  );
  }
 
@@ -301,7 +301,7 @@ export default function ChatInterface({
  <div className="flex items-center justify-between mb-1.5">
  <div className="flex items-center gap-2">
  <Loader2 className="w-4 h-4 animate-spin text-[rgb(var(--primary))]" />
- <span className="text-sm font-medium text-neutral-900 ">Loading AI Model...</span>
+ <span className="text-sm font-medium text-neutral-900 ">Loading Dia GenZ 1B...</span>
  </div>
  <span className="text-xs font-mono text-neutral-500 ">{Math.round(modelProgress)}%</span>
  </div>
@@ -319,7 +319,7 @@ export default function ChatInterface({
  {modelError && !isModelLoading && (
  <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl max-w-md">
  <p className="text-sm text-red-700 mb-3">
- Failed to load model: {modelError}
+ {modelError || "Failed to load Dia GenZ 1B. Please check your internet connection and try again."}
  </p>
  <button
  onClick={initializeModel}

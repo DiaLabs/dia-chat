@@ -39,14 +39,15 @@ env.backends.onnx.wasm.proxy = true;
 // Singleton to hold the pipeline instance
 class PipelineSingleton {
     static task = 'text-generation';
-    static model = 'onnx-community/Llama-3.2-1B-Instruct-q4f16';
+    static model = 'onnx-community/Llama-3.2-1B-Instruct';
     static instance: any = null;
 
-    static async getInstance(progress_callback: any = null) {
+    static async getInstance(progress_callback: any = null, modelId?: string) {
         if (this.instance === null) {
+            const targetModel = modelId || this.model;
             try {
                 // console.log('Worker: Creating pipeline...'); // Verbose
-                this.instance = await pipeline(this.task, this.model, {
+                this.instance = await pipeline(this.task, targetModel, {
                     dtype: 'q4', // 4-bit quantization
                     device: 'wasm',
                     progress_callback,
@@ -64,13 +65,14 @@ class PipelineSingleton {
 let isInterrupted = false;
 
 ctx.addEventListener('message', async (event: MessageEvent) => {
-    const { type, data } = event.data;
+    const { type, data, config } = event.data;
 
     if (type === 'init') {
         try {
+            const targetModel = config?.fallbackModelId || PipelineSingleton.model;
             await PipelineSingleton.getInstance((progress: any) => {
                 ctx.postMessage({ type: 'progress', data: progress });
-            });
+            }, targetModel);
             ctx.postMessage({ type: 'ready' });
         } catch (error: any) {
             ctx.postMessage({ type: 'error', error: error.message });
